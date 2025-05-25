@@ -1,5 +1,5 @@
 # Alarm-Clock  
-Personal project. Not fully baked. UI is not great. Code is not very well written and is unclear.
+Personal project. Not fully baked. UI is not great. Code is not very well written and is unclear.  
 Raspberry Pi based alarm clock with 7-segment display.
 ![Alarm-Clock](./images/schematic.png)
 
@@ -12,18 +12,18 @@ Raspberry Pi based alarm clock with 7-segment display.
 
 ## Operation  
 1. Press button 1 to set alarm.
-  a. Turn knob to set hour.
-  b. Press knob to go to minutes entry, turn knob to set minutes.
-  c. Press knob to go to AM / PM entry, turn knob to set AM or PM.
-  d. Press knob to go to alarm on/off, setting turn knob to set on or off.
-  e. Press button 1 to exit at any time.
+  - Turn knob to set hour.
+  - Press knob to go to minutes entry, turn knob to set minutes.
+  - Press knob to go to AM / PM entry, turn knob to set AM or PM.
+  - Press knob to go to alarm on/off, setting turn knob to set on or off.
+  - Press button 1 to exit at any time.
 2. Press button 2 for mode settings
-  a. Initial mode setting is display brightness. Turn the knob to change brightness.
-  b. Press the knob to go to set alarm sound. Turn the knob to select the sound.
-  c. Press the knob to change volume. Turn the knob to change the volume.
-  d. Press the knob to go to display on/off setting. Turn the knob to set on or off.
-     1. Note it's been a long time since I wrote this code. I'm not sure what this setting does. I think the display will turn on and off or dim automatically based on time, but I need to study the code to figure this one out.
-  e. Press button 2 to exit at any time.
+  - Initial mode setting is display brightness. Turn the knob to change brightness.
+  - Press the knob to go to set alarm sound. Turn the knob to select the sound.
+  - Press the knob to change volume. Turn the knob to change the volume.
+  - Press the knob to go to display on/off setting. Turn the knob to set on or off.
+     - Note it's been a long time since I wrote this code. I'm not sure what this setting does. I think the display will turn on and off or dim automatically based on time, but I need to study the code to figure this one out.
+  - Press button 2 to exit at any time.
   
 
 
