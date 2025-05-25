@@ -1,6 +1,8 @@
 # Alarm-Clock  
 Personal project. Not fully baked. UI is not great. Code is not very well written and is unclear.  
-Raspberry Pi based alarm clock with 7-segment display.
+Raspberry Pi based alarm clock with 7-segment display.  
+  
+Schematic  
 ![Alarm-Clock](./images/schematic.png)
 
 ## Features  
