@@ -1,0 +1,5 @@
+adafruit-blinka
+adafruit-circuitpython-ht16k33
+pyalsaaudio
+RPi.GPIO
+pyalsaaudio
