@@ -39,6 +39,13 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
+# Set up rotary encoder pins as GPIO inputs with pull-ups
+GPIO.setup(PIN_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(PIN_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(mode_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(aux_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 # Pulse EDS and wait for sensor to settle
 GPIO.output(TRIG, False)
 print("Waiting For Sensor To Settle")
@@ -583,7 +590,6 @@ try:
             logger.error("numdisplay.show() error: %s", str(e))
       if alarm_stat == "ON":
          check_alarm(now)
-
 except KeyboardInterrupt:
    alphadisplay.fill(0)
    try:
@@ -595,4 +601,5 @@ except KeyboardInterrupt:
       numdisplay.show()
    except Exception as e:
       logger.error("numdisplay.show() error: %s", str(e))
+finally:
    GPIO.cleanup()
