@@ -54,13 +54,13 @@ except Exception as e:
 # Define EDS GPIO input and output pins and setup GPIO
 TRIG = 5
 ECHO = 6
-lgpio.set_mode(h, TRIG, lgpio.OUTPUT)
-lgpio.set_mode(h, ECHO, lgpio.INPUT)
+lgpio.gpio_set_mode(h, TRIG, lgpio.OUTPUT)
+lgpio.gpio_set_mode(h, ECHO, lgpio.INPUT)
 
 # Set up rotary encoder pins as GPIO inputs with pull-ups
 for pin in [PIN_A, PIN_B, BUTTON, mode_switch, aux_switch]:
-    lgpio.set_mode(h, pin, lgpio.INPUT)
-    lgpio.set_pull_up_down(h, pin, lgpio.PUD_UP)
+    lgpio.gpio_set_mode(h, pin, lgpio.INPUT)
+    lgpio.gpio_set_pull_up_down(h, pin, lgpio.PUD_UP)
 
 # Pulse EDS and wait for sensor to settle
 lgpio.gpio_write(h, TRIG, 0)
