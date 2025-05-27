@@ -9,7 +9,8 @@ import os
 import time
 import datetime
 from datetime import datetime as dt
-from adafruit-circuitpython-ht16k33.segments import Seg7x4, Seg14x4
+from adafruit_ht16k33.segments import Seg7x4
+from adafruit_ht16k33.segments import Seg14x4
 import RPi.GPIO as GPIO
 from rotary_class_jsl import RotaryEncoder
 import logging
