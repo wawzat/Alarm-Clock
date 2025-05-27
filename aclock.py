@@ -38,20 +38,20 @@ h = lgpio.gpiochip_open(0)
 # Define EDS GPIO input and output pins and setup GPIO
 TRIG = 5
 ECHO = 6
-lgpio.set_mode(h, TRIG, lgpio.OUTPUT)
-lgpio.set_mode(h, ECHO, lgpio.INPUT)
+lgpio.gpio_set_mode(h, TRIG, lgpio.OUTPUT)
+lgpio.gpio_set_mode(h, ECHO, lgpio.INPUT)
 
 # Set up rotary encoder pins as GPIO inputs with pull-ups
-lgpio.set_mode(h, PIN_A, lgpio.INPUT)
-lgpio.set_mode(h, PIN_B, lgpio.INPUT)
-lgpio.set_mode(h, BUTTON, lgpio.INPUT)
-lgpio.set_mode(h, mode_switch, lgpio.INPUT)
-lgpio.set_mode(h, aux_switch, lgpio.INPUT)
-lgpio.set_pull_up_down(h, PIN_A, lgpio.PUD_UP)
-lgpio.set_pull_up_down(h, PIN_B, lgpio.PUD_UP)
-lgpio.set_pull_up_down(h, BUTTON, lgpio.PUD_UP)
-lgpio.set_pull_up_down(h, mode_switch, lgpio.PUD_UP)
-lgpio.set_pull_up_down(h, aux_switch, lgpio.PUD_UP)
+lgpio.gpio_set_mode(h, PIN_A, lgpio.INPUT)
+lgpio.gpio_set_mode(h, PIN_B, lgpio.INPUT)
+lgpio.gpio_set_mode(h, BUTTON, lgpio.INPUT)
+lgpio.gpio_set_mode(h, mode_switch, lgpio.INPUT)
+lgpio.gpio_set_mode(h, aux_switch, lgpio.INPUT)
+lgpio.gpio_set_pull_up_down(h, PIN_A, lgpio.PUD_UP)
+lgpio.gpio_set_pull_up_down(h, PIN_B, lgpio.PUD_UP)
+lgpio.gpio_set_pull_up_down(h, BUTTON, lgpio.PUD_UP)
+lgpio.gpio_set_pull_up_down(h, mode_switch, lgpio.PUD_UP)
+lgpio.gpio_set_pull_up_down(h, aux_switch, lgpio.PUD_UP)
 
 # Pulse EDS and wait for sensor to settle
 lgpio.gpio_write(h, TRIG, 0)
