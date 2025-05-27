@@ -11,7 +11,7 @@ import datetime
 from datetime import datetime as dt
 from adafruit_ht16k33.segments import Seg7x4
 from adafruit_ht16k33.segments import Seg14x4
-import RPi.GPIO as GPIO
+import lgpio
 from rotary_class_jsl import RotaryEncoder
 import logging
 import board
@@ -32,22 +32,29 @@ BUTTON = 12   # Pin 12
 mode_switch = 13
 aux_switch = 21
 
+# Open GPIO chip handle
+h = lgpio.gpiochip_open(0)
+
 # Define EDS GPIO input and output pins and setup GPIO
 TRIG = 5
 ECHO = 6
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TRIG,GPIO.OUT)
-GPIO.setup(ECHO,GPIO.IN)
+lgpio.set_mode(h, TRIG, lgpio.OUTPUT)
+lgpio.set_mode(h, ECHO, lgpio.INPUT)
 
 # Set up rotary encoder pins as GPIO inputs with pull-ups
-GPIO.setup(PIN_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(PIN_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(mode_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(aux_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+lgpio.set_mode(h, PIN_A, lgpio.INPUT)
+lgpio.set_mode(h, PIN_B, lgpio.INPUT)
+lgpio.set_mode(h, BUTTON, lgpio.INPUT)
+lgpio.set_mode(h, mode_switch, lgpio.INPUT)
+lgpio.set_mode(h, aux_switch, lgpio.INPUT)
+lgpio.set_pull_up_down(h, PIN_A, lgpio.PUD_UP)
+lgpio.set_pull_up_down(h, PIN_B, lgpio.PUD_UP)
+lgpio.set_pull_up_down(h, BUTTON, lgpio.PUD_UP)
+lgpio.set_pull_up_down(h, mode_switch, lgpio.PUD_UP)
+lgpio.set_pull_up_down(h, aux_switch, lgpio.PUD_UP)
 
 # Pulse EDS and wait for sensor to settle
-GPIO.output(TRIG, False)
+lgpio.gpio_write(h, TRIG, 0)
 print("Waiting For Sensor To Settle")
 time.sleep(2)
 
@@ -154,22 +161,18 @@ def check_alarm(now):
    return
 
 def eds():
-   GPIO.output(TRIG, False)
+   lgpio.gpio_write(h, TRIG, 0)
    time.sleep(0.000002)
-   GPIO.output(TRIG, True)
+   lgpio.gpio_write(h, TRIG, 1)
    time.sleep(0.000015)
-   GPIO.output(TRIG, False)
-   while GPIO.input(ECHO)==0:
+   lgpio.gpio_write(h, TRIG, 0)
+   while lgpio.gpio_read(h, ECHO)==0:
       pulse_start = time.time()
-      #print "0"
-   while GPIO.input(ECHO)==1:
+   while lgpio.gpio_read(h, ECHO)==1:
       pulse_end = time.time()
-      #print "1"
    pulse_duration = pulse_end - pulse_start
-   # distance = pulse_duration * 17150 #CM
    distance = pulse_duration * 6752
    distance = round(distance, 2)
-   # print "Distance: ",distance," in"   
    return distance
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -602,4 +605,4 @@ except KeyboardInterrupt:
    except Exception as e:
       logger.error("numdisplay.show() error: %s", str(e))
 finally:
-   GPIO.cleanup()
+   lgpio.gpiochip_close(h)

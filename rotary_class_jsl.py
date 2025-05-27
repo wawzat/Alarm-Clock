@@ -72,7 +72,7 @@
 #
 # Modified by JSL 20170910 adding two stand-alone switches
 
-import RPi.GPIO as GPIO
+import lgpio
 
 R_CCW_BEGIN   = 0x1
 R_CW_BEGIN    = 0x2
@@ -158,75 +158,62 @@ class RotaryEncoder:
         self.callback = callback
         self.mode_callback = mode_callback
         self.aux_callback = aux_callback
+        self.h = lgpio.gpiochip_open(0)
+        # Set up pins as input with pull-ups
+        lgpio.set_mode(self.h, self.pinA, lgpio.INPUT)
+        lgpio.set_mode(self.h, self.pinB, lgpio.INPUT)
+        lgpio.set_mode(self.h, self.button, lgpio.INPUT)
+        lgpio.set_mode(self.h, self.mode_switch, lgpio.INPUT)
+        lgpio.set_mode(self.h, self.aux_switch, lgpio.INPUT)
+        lgpio.set_pull_up_down(self.h, self.pinA, lgpio.PUD_UP)
+        lgpio.set_pull_up_down(self.h, self.pinB, lgpio.PUD_UP)
+        lgpio.set_pull_up_down(self.h, self.button, lgpio.PUD_UP)
+        lgpio.set_pull_up_down(self.h, self.mode_switch, lgpio.PUD_UP)
+        lgpio.set_pull_up_down(self.h, self.aux_switch, lgpio.PUD_UP)
+        # Register alert functions for rotary and buttons
+        lgpio.set_alert_func(self.h, self.pinA, self._switch_event)
+        lgpio.set_alert_func(self.h, self.pinB, self._switch_event)
+        lgpio.set_alert_func(self.h, self.button, self._button_event)
+        lgpio.set_alert_func(self.h, self.mode_switch, self._mode_callback)
+        lgpio.set_alert_func(self.h, self.aux_switch, self._aux_callback)
 
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        
-        if revision == 1:
-            # For version 1 (old) boards 
-            GPIO.setup(self.pinA, GPIO.IN)
-            GPIO.setup(self.pinB, GPIO.IN)
-            GPIO.setup(self.button, GPIO.IN)
-            GPIO.setup(self.mode_switch, GPIO.IN)
-            GPIO.setup(self.aux_switch, GPIO.IN)
- 
-        else:
-            # The following lines enable the internal pull-up resistors
-            # on version 2 (latest) boards
-            GPIO.setup(self.pinA, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.pinB, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.mode_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self.aux_switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        # Add event detection to the GPIO inputs
-        GPIO.add_event_detect(self.pinA, GPIO.BOTH, callback=self.switch_event)
-        GPIO.add_event_detect(self.pinB, GPIO.BOTH, callback=self.switch_event)
-        GPIO.add_event_detect(self.button, GPIO.BOTH, callback=self.button_event, bouncetime=200)
-        GPIO.add_event_detect(self.mode_switch, GPIO.FALLING, callback=self.mode_callback, bouncetime=200)
-        GPIO.add_event_detect(self.aux_switch, GPIO.FALLING, callback=self.aux_callback, bouncetime=200)
-
-    # Call back routine called by rotary switch events
-    def switch_event(self, switch):
-        # Grab state of input pins.
-        pinstate = (GPIO.input(self.pinB) << 1) | GPIO.input(self.pinA)
-        # Determine new state from the pins and state table.
+    def _switch_event(self, h, gpio, level, tick):
+        # Only trigger on edge (not level change to 2)
+        if level == 2:
+            return
+        pinstate = (lgpio.gpio_read(self.h, self.pinB) << 1) | lgpio.gpio_read(self.h, self.pinA)
         self.state = STATE_TAB[self.state & 0xf][pinstate]
-        # Return emit bits, ie the generated event.
         result = self.state & 0x30
         if result:
             event = self.CLOCKWISE if result == 32 else self.ANTICLOCKWISE
             self.callback(event)
-            #print "Return: ",self.state & 0x30
-            #return self.state & 0x30
 
-    # Rotary Push button event
-    def button_event(self,button):
-        if GPIO.input(button): 
-            event = self.BUTTONUP 
+    def _button_event(self, h, gpio, level, tick):
+        if level == 2:
+            return
+        if lgpio.gpio_read(self.h, self.button):
+            event = self.BUTTONUP
         else:
-            event = self.BUTTONDOWN 
+            event = self.BUTTONDOWN
         self.callback(event)
-        return
 
-    # JSL added Mode Switch Stand-alone Push button event
-    def mode_callback(self,mode_switch):
-        if GPIO.input(mode_switch): 
-            channel = self.BUTTONUP 
+    def _mode_callback(self, h, gpio, level, tick):
+        if level == 2:
+            return
+        if lgpio.gpio_read(self.h, self.mode_switch):
+            channel = self.BUTTONUP
         else:
-            channel = self.BUTTONDOWN 
+            channel = self.BUTTONDOWN
         self.mode_callback(channel)
-        return
 
-    # JSL added Sleep Switch Stand-alone Push button event
-    def aux_callback(self,mode_switch):
-        if GPIO.input(aux_switch): 
-            channel = self.BUTTONUP 
+    def _aux_callback(self, h, gpio, level, tick):
+        if level == 2:
+            return
+        if lgpio.gpio_read(self.h, self.aux_switch):
+            channel = self.BUTTONUP
         else:
-            channel = self.BUTTONDOWN 
+            channel = self.BUTTONDOWN
         self.aux_callback(channel)
-        return
 
-    # Get a switch state
     def getSwitchState(self, switch):
-        return  GPIO.input(switch)
+        return lgpio.gpio_read(self.h, switch)
