@@ -55,7 +55,7 @@ numdisplay = Seg7x4(i2c, address=0x72)
 # Initialize the display. Must be called once before using the display.
 alphadisplay.fill(0)
 numdisplay.fill(0)
-numdisplay.brightness = 6
+numdisplay.brightness = 0.375  # 6/16, since range is 0.0-1.0
 
 # Audio feature flag
 use_audio = False  # Set to True to enable audio features
@@ -450,7 +450,9 @@ def display_alphamessage(message_type, alpha_message, decimal_state, decimal_pla
       if decimal_state == "ON":
          alphadisplay.set_decimal(decimal_place,True)
       print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
-      alphadisplay.brightness = dimLevel
+      # Convert dimLevel (0-15) to float (0.0-1.0) for brightness
+      brightness_val = max(0.0, min(1.0, float(dimLevel) / 15.0))
+      alphadisplay.brightness = brightness_val
       try:
          alphadisplay.show()
       except Exception as e:
@@ -473,7 +475,9 @@ def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, man
       numdisplay.fill(0)
       numdisplay.print(str(num_message))
       numdisplay.colon = now.second %2
-      numdisplay.brightness = dimLevel
+      # Convert dimLevel (0-15) to float (0.0-1.0) for brightness
+      brightness_val = max(0.0, min(1.0, float(dimLevel) / 15.0))
+      numdisplay.brightness = brightness_val
       try:
          numdisplay.show()
       except Exception as e:
