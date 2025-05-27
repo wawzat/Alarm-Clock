@@ -175,8 +175,7 @@ class RotaryEncoder:
         self.cbMode = lgpio.callback(self.h, self.mode_switch, lgpio.BOTH_EDGES, self._mode_callback)
         self.cbAux = lgpio.callback(self.h, self.aux_switch, lgpio.BOTH_EDGES, self._aux_callback)
 
-    def _switch_event(self, h, gpio, level, tick):
-        # Only trigger on edge (not level change to 2)
+    def _switch_event(self, chip, gpio, level, tick):
         if level == 2:
             return
         pinstate = (lgpio.gpio_read(self.h, self.pinB) << 1) | lgpio.gpio_read(self.h, self.pinA)
@@ -186,7 +185,7 @@ class RotaryEncoder:
             event = self.CLOCKWISE if result == 32 else self.ANTICLOCKWISE
             self.callback(event)
 
-    def _button_event(self, h, gpio, level, tick):
+    def _button_event(self, chip, gpio, level, tick):
         if level == 2:
             return
         if lgpio.gpio_read(self.h, self.button):
@@ -195,7 +194,7 @@ class RotaryEncoder:
             event = self.BUTTONDOWN
         self.callback(event)
 
-    def _mode_callback(self, h, gpio, level, tick):
+    def _mode_callback(self, chip, gpio, level, tick):
         if level == 2:
             return
         if lgpio.gpio_read(self.h, self.mode_switch):
@@ -204,7 +203,7 @@ class RotaryEncoder:
             channel = self.BUTTONDOWN
         self.mode_callback(channel)
 
-    def _aux_callback(self, h, gpio, level, tick):
+    def _aux_callback(self, chip, gpio, level, tick):
         if level == 2:
             return
         if lgpio.gpio_read(self.h, self.aux_switch):
