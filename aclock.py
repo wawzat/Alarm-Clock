@@ -57,10 +57,6 @@ ECHO = 6
 lgpio.gpio_claim_output(h, TRIG, 0)  # Set TRIG as output, initial LOW
 lgpio.gpio_claim_input(h, ECHO, lgpio.SET_PULL_NONE)  # Set ECHO as input, no pull
 
-# Set up rotary encoder pins as GPIO inputs with pull-ups
-for pin in [PIN_A, PIN_B, BUTTON, mode_switch, aux_switch]:
-    lgpio.gpio_claim_input(h, pin, lgpio.SET_PULL_UP)
-
 # Pulse EDS and wait for sensor to settle
 lgpio.gpio_write(h, TRIG, 0)
 print("Waiting For Sensor To Settle")
