@@ -163,18 +163,13 @@ class RotaryEncoder:
         self.aux_callback = aux_callback
         self.h = lgpio.gpiochip_open(0)
         # Set up pins as inputs with pull-ups using correct lgpio API
-        lgpio.gpio_set_mode(self.h, self.pinA, lgpio.INPUT)
-        lgpio.gpio_set_pull_up_down(self.h, self.pinA, lgpio.PUD_UP)
-        lgpio.gpio_set_mode(self.h, self.pinB, lgpio.INPUT)
-        lgpio.gpio_set_pull_up_down(self.h, self.pinB, lgpio.PUD_UP)
-        lgpio.gpio_set_mode(self.h, self.button, lgpio.INPUT)
-        lgpio.gpio_set_pull_up_down(self.h, self.button, lgpio.PUD_UP)
+        lgpio.gpio_claim_input(self.h, self.pinA, lgpio.SET_PULL_UP)
+        lgpio.gpio_claim_input(self.h, self.pinB, lgpio.SET_PULL_UP)
+        lgpio.gpio_claim_input(self.h, self.button, lgpio.SET_PULL_UP)
         if self.mode_switch is not None:
-            lgpio.gpio_set_mode(self.h, self.mode_switch, lgpio.INPUT)
-            lgpio.gpio_set_pull_up_down(self.h, self.mode_switch, lgpio.PUD_UP)
+            lgpio.gpio_claim_input(self.h, self.mode_switch, lgpio.SET_PULL_UP)
         if self.aux_switch is not None:
-            lgpio.gpio_set_mode(self.h, self.aux_switch, lgpio.INPUT)
-            lgpio.gpio_set_pull_up_down(self.h, self.aux_switch, lgpio.PUD_UP)
+            lgpio.gpio_claim_input(self.h, self.aux_switch, lgpio.SET_PULL_UP)
         # Register alert functions for rotary and buttons
         lgpio.set_alert_func(self.h, self.pinA, self._switch_event)
         lgpio.set_alert_func(self.h, self.pinB, self._switch_event)
