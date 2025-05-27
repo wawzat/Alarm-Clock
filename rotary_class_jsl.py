@@ -169,11 +169,11 @@ class RotaryEncoder:
         if self.aux_switch is not None:
             lgpio.gpio_claim_input(self.h, self.aux_switch, lgpio.SET_PULL_UP)
         # Register alert functions for rotary and buttons
-        lgpio.set_alert_func(self.h, self.pinA, self._switch_event)
-        lgpio.set_alert_func(self.h, self.pinB, self._switch_event)
-        lgpio.set_alert_func(self.h, self.button, self._button_event)
-        lgpio.set_alert_func(self.h, self.mode_switch, self._mode_callback)
-        lgpio.set_alert_func(self.h, self.aux_switch, self._aux_callback)
+        lgpio.gpio_claim_alert(self.h, self.pinA, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._switch_event)
+        lgpio.gpio_claim_alert(self.h, self.pinB, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._switch_event)
+        lgpio.gpio_claim_alert(self.h, self.button, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._button_event)
+        lgpio.gpio_claim_alert(self.h, self.mode_switch, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._mode_callback)
+        lgpio.gpio_claim_alert(self.h, self.aux_switch, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._aux_callback)
 
     def _switch_event(self, h, gpio, level, tick):
         # Only trigger on edge (not level change to 2)
