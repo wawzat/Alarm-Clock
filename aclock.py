@@ -1,21 +1,32 @@
 # Alarm clock with LED Display
 # James S. Lucas
+# Bookworm/2025: Uses lgpio (not RPi.GPIO) for GPIO compatibility with Raspberry Pi OS Bookworm.
+# Requires: sudo apt install python3-lgpio; pip3 install adafruit-circuitpython-ht16k33
+#
 # Issues and todo: alarm pre-selects, auto alarm repeat, issues with dimLevel 0 line 402 auto time setting conflict with manual off
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
 # 20250526
 import os
-#import alsaaudio
+import sys
 import time
 import datetime
 from datetime import datetime as dt
 from adafruit_ht16k33.segments import Seg7x4
 from adafruit_ht16k33.segments import Seg14x4
-import lgpio
-from rotary_class_jsl import RotaryEncoder
 import logging
-import board
-import busio
+try:
+    import lgpio
+except ImportError:
+    print("ERROR: lgpio not installed. Please run: sudo apt install python3-lgpio")
+    sys.exit(1)
+try:
+    import board
+    import busio
+except ImportError:
+    print("ERROR: board/busio not installed. Please run: pip3 install adafruit-blinka")
+    sys.exit(1)
+from rotary_class_jsl import RotaryEncoder
 
 # Set up logger for error logging
 logger = logging.getLogger("aclock")
@@ -33,7 +44,12 @@ mode_switch = 13
 aux_switch = 21
 
 # Open GPIO chip handle
-h = lgpio.gpiochip_open(0)
+try:
+    h = lgpio.gpiochip_open(0)
+except Exception as e:
+    logger.error(f"Failed to open GPIO chip: {e}")
+    print(f"ERROR: Failed to open GPIO chip: {e}")
+    sys.exit(1)
 
 # Define EDS GPIO input and output pins and setup GPIO
 TRIG = 5
@@ -42,16 +58,9 @@ lgpio.gpio_set_mode(h, TRIG, lgpio.OUTPUT)
 lgpio.gpio_set_mode(h, ECHO, lgpio.INPUT)
 
 # Set up rotary encoder pins as GPIO inputs with pull-ups
-lgpio.gpio_set_mode(h, PIN_A, lgpio.INPUT)
-lgpio.gpio_set_mode(h, PIN_B, lgpio.INPUT)
-lgpio.gpio_set_mode(h, BUTTON, lgpio.INPUT)
-lgpio.gpio_set_mode(h, mode_switch, lgpio.INPUT)
-lgpio.gpio_set_mode(h, aux_switch, lgpio.INPUT)
-lgpio.gpio_set_pull_up_down(h, PIN_A, lgpio.PUD_UP)
-lgpio.gpio_set_pull_up_down(h, PIN_B, lgpio.PUD_UP)
-lgpio.gpio_set_pull_up_down(h, BUTTON, lgpio.PUD_UP)
-lgpio.gpio_set_pull_up_down(h, mode_switch, lgpio.PUD_UP)
-lgpio.gpio_set_pull_up_down(h, aux_switch, lgpio.PUD_UP)
+for pin in [PIN_A, PIN_B, BUTTON, mode_switch, aux_switch]:
+    lgpio.gpio_set_mode(h, pin, lgpio.INPUT)
+    lgpio.gpio_set_pull_up_down(h, pin, lgpio.PUD_UP)
 
 # Pulse EDS and wait for sensor to settle
 lgpio.gpio_write(h, TRIG, 0)
@@ -62,9 +71,15 @@ time.sleep(2)
 minute_incr = 1
 
 # Create display instances (default I2C address (0x70))
-i2c = busio.I2C(board.SCL, board.SDA)
-alphadisplay = Seg14x4(i2c)
-numdisplay = Seg7x4(i2c, address=0x72)
+try:
+    i2c = busio.I2C(board.SCL, board.SDA)
+    alphadisplay = Seg14x4(i2c)
+    numdisplay = Seg7x4(i2c, address=0x72)
+except Exception as e:
+    logger.error(f"I2C/Display initialization error: {e}")
+    print(f"ERROR: I2C/Display initialization error: {e}")
+    lgpio.gpiochip_close(h)
+    sys.exit(1)
 
 # Initialize the display. Must be called once before using the display.
 alphadisplay.fill(0)
