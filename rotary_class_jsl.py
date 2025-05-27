@@ -160,7 +160,7 @@ class RotaryEncoder:
         self.mode_callback = mode_callback
         self.aux_callback = aux_callback
         self.h = lgpio.gpiochip_open(0)
-        # Set up pins as inputs with pull-ups using correct lgpio API
+        # Claim pins as input with pull-up
         lgpio.gpio_claim_input(self.h, self.pinA, lgpio.SET_PULL_UP)
         lgpio.gpio_claim_input(self.h, self.pinB, lgpio.SET_PULL_UP)
         lgpio.gpio_claim_input(self.h, self.button, lgpio.SET_PULL_UP)
@@ -168,12 +168,12 @@ class RotaryEncoder:
             lgpio.gpio_claim_input(self.h, self.mode_switch, lgpio.SET_PULL_UP)
         if self.aux_switch is not None:
             lgpio.gpio_claim_input(self.h, self.aux_switch, lgpio.SET_PULL_UP)
-        # Register alert functions for rotary and buttons
-        lgpio.gpio_claim_alert(self.h, self.pinA, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._switch_event)
-        lgpio.gpio_claim_alert(self.h, self.pinB, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._switch_event)
-        lgpio.gpio_claim_alert(self.h, self.button, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._button_event)
-        lgpio.gpio_claim_alert(self.h, self.mode_switch, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._mode_callback)
-        lgpio.gpio_claim_alert(self.h, self.aux_switch, lgpio.SET_PULL_UP, lgpio.BOTH_EDGES, self._aux_callback)
+        # Register callbacks for edge events
+        self.cbA = lgpio.callback(self.h, self.pinA, lgpio.BOTH_EDGES, self._switch_event)
+        self.cbB = lgpio.callback(self.h, self.pinB, lgpio.BOTH_EDGES, self._switch_event)
+        self.cbBtn = lgpio.callback(self.h, self.button, lgpio.BOTH_EDGES, self._button_event)
+        self.cbMode = lgpio.callback(self.h, self.mode_switch, lgpio.BOTH_EDGES, self._mode_callback)
+        self.cbAux = lgpio.callback(self.h, self.aux_switch, lgpio.BOTH_EDGES, self._aux_callback)
 
     def _switch_event(self, h, gpio, level, tick):
         # Only trigger on edge (not level change to 2)
