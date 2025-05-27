@@ -74,8 +74,6 @@
 
 import sys
 import lgpio
-print("[DEBUG] lgpio attributes:", dir(lgpio))
-sys.exit(1)
 
 R_CCW_BEGIN   = 0x1
 R_CW_BEGIN    = 0x2
