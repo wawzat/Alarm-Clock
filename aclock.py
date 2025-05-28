@@ -544,14 +544,15 @@ try:
          if (num_message != last_num_message) or (current_brightness != last_num_brightness):
             numdisplay.fill(0)
             numdisplay.print(str(num_message))
-            numdisplay.colon = now.second % 2
             numdisplay.brightness = current_brightness
-            try:
-               numdisplay.show()
-            except Exception as e:
-               logger.error("numdisplay.show() error: %s", str(e))
             last_num_message = num_message
             last_num_brightness = current_brightness
+         # Always update colon and show, for blink effect
+         numdisplay.colon = now.second % 2
+         try:
+            numdisplay.show()
+         except Exception as e:
+            logger.error("numdisplay.show() error: %s", str(e))
          if mode_state == 2:
             if alarmSet == 1:
                alpha_message = alarm_hour*100 + alarm_minute
