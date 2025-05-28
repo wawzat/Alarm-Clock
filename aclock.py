@@ -598,3 +598,15 @@ except KeyboardInterrupt:
       numdisplay.show()
    except Exception as e:
       logger.error("numdisplay.show() error: %s", str(e))
+finally:
+   # Ensure displays are turned off after a crash or any exit
+   try:
+      alphadisplay.fill(0)
+      alphadisplay.show()
+   except Exception as e:
+      logger.error("alphadisplay.show() error (finally): %s", str(e))
+   try:
+      numdisplay.fill(0)
+      numdisplay.show()
+   except Exception as e:
+      logger.error("numdisplay.show() error (finally): %s", str(e))
