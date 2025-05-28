@@ -1,32 +1,21 @@
 # Alarm clock with LED Display
 # James S. Lucas
-# Bookworm/2025: Uses lgpio (not RPi.GPIO) for GPIO compatibility with Raspberry Pi OS Bookworm.
-# Requires: sudo apt install python3-lgpio; pip3 install adafruit-circuitpython-ht16k33
-#
 # Issues and todo: alarm pre-selects, auto alarm repeat, issues with dimLevel 0 line 402 auto time setting conflict with manual off
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
 # 20250526
 import os
-import sys
+#import alsaaudio
 import time
 import datetime
 from datetime import datetime as dt
 from adafruit_ht16k33.segments import Seg7x4
 from adafruit_ht16k33.segments import Seg14x4
-import logging
-try:
-    import lgpio
-except ImportError:
-    print("ERROR: lgpio not installed. Please run: sudo apt install python3-lgpio")
-    sys.exit(1)
-try:
-    import board
-    import busio
-except ImportError:
-    print("ERROR: board/busio not installed. Please run: pip3 install adafruit-blinka")
-    sys.exit(1)
+import RPi.GPIO as GPIO
 from rotary_class_jsl import RotaryEncoder
+import logging
+import board
+import busio
 
 # Set up logger for error logging
 logger = logging.getLogger("aclock")
@@ -43,22 +32,15 @@ BUTTON = 12   # Pin 12
 mode_switch = 13
 aux_switch = 21
 
-# Open GPIO chip handle
-try:
-    h = lgpio.gpiochip_open(0)
-except Exception as e:
-    logger.error(f"Failed to open GPIO chip: {e}")
-    print(f"ERROR: Failed to open GPIO chip: {e}")
-    sys.exit(1)
-
 # Define EDS GPIO input and output pins and setup GPIO
 TRIG = 5
 ECHO = 6
-lgpio.gpio_claim_output(h, TRIG, 0)  # Set TRIG as output, initial LOW
-lgpio.gpio_claim_input(h, ECHO, lgpio.SET_PULL_NONE)  # Set ECHO as input, no pull
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG,GPIO.OUT)
+GPIO.setup(ECHO,GPIO.IN)
 
 # Pulse EDS and wait for sensor to settle
-lgpio.gpio_write(h, TRIG, 0)
+GPIO.output(TRIG, False)
 print("Waiting For Sensor To Settle")
 time.sleep(2)
 
@@ -66,20 +48,14 @@ time.sleep(2)
 minute_incr = 1
 
 # Create display instances (default I2C address (0x70))
-try:
-    i2c = busio.I2C(board.SCL, board.SDA)
-    alphadisplay = Seg14x4(i2c)
-    numdisplay = Seg7x4(i2c, address=0x72)
-except Exception as e:
-    logger.error(f"I2C/Display initialization error: {e}")
-    print(f"ERROR: I2C/Display initialization error: {e}")
-    lgpio.gpiochip_close(h)
-    sys.exit(1)
+i2c = busio.I2C(board.SCL, board.SDA)
+alphadisplay = Seg14x4(i2c)
+numdisplay = Seg7x4(i2c, address=0x72)
 
 # Initialize the display. Must be called once before using the display.
 alphadisplay.fill(0)
 numdisplay.fill(0)
-numdisplay.brightness = 0.375  # 6/16, since range is 0.0-1.0
+numdisplay.brightness = 6
 
 # Audio feature flag
 use_audio = False  # Set to True to enable audio features
@@ -171,18 +147,22 @@ def check_alarm(now):
    return
 
 def eds():
-   lgpio.gpio_write(h, TRIG, 0)
+   GPIO.output(TRIG, False)
    time.sleep(0.000002)
-   lgpio.gpio_write(h, TRIG, 1)
+   GPIO.output(TRIG, True)
    time.sleep(0.000015)
-   lgpio.gpio_write(h, TRIG, 0)
-   while lgpio.gpio_read(h, ECHO)==0:
+   GPIO.output(TRIG, False)
+   while GPIO.input(ECHO)==0:
       pulse_start = time.time()
-   while lgpio.gpio_read(h, ECHO)==1:
+      #print "0"
+   while GPIO.input(ECHO)==1:
       pulse_end = time.time()
+      #print "1"
    pulse_duration = pulse_end - pulse_start
+   # distance = pulse_duration * 17150 #CM
    distance = pulse_duration * 6752
    distance = round(distance, 2)
+   # print "Distance: ",distance," in"   
    return distance
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -470,9 +450,7 @@ def display_alphamessage(message_type, alpha_message, decimal_state, decimal_pla
       if decimal_state == "ON":
          alphadisplay.set_decimal(decimal_place,True)
       print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
-      # Convert dimLevel (0-15) to float (0.0-1.0) for brightness
-      brightness_val = max(0.0, min(1.0, float(dimLevel) / 15.0))
-      alphadisplay.brightness = brightness_val
+      alphadisplay.brightness = dimLevel
       try:
          alphadisplay.show()
       except Exception as e:
@@ -495,9 +473,7 @@ def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, man
       numdisplay.fill(0)
       numdisplay.print(str(num_message))
       numdisplay.colon = now.second %2
-      # Convert dimLevel (0-15) to float (0.0-1.0) for brightness
-      brightness_val = max(0.0, min(1.0, float(dimLevel) / 15.0))
-      numdisplay.brightness = brightness_val
+      numdisplay.brightness = dimLevel
       try:
          numdisplay.show()
       except Exception as e:
@@ -603,6 +579,7 @@ try:
             logger.error("numdisplay.show() error: %s", str(e))
       if alarm_stat == "ON":
          check_alarm(now)
+
 except KeyboardInterrupt:
    alphadisplay.fill(0)
    try:
@@ -614,5 +591,4 @@ except KeyboardInterrupt:
       numdisplay.show()
    except Exception as e:
       logger.error("numdisplay.show() error: %s", str(e))
-finally:
-   lgpio.gpiochip_close(h)
+   GPIO.cleanup()
