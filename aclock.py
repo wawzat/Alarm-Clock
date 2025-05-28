@@ -185,23 +185,25 @@ def mode_callback(channel):
    global alarm_ringing
    global sleep_state
    global alarmSet
-   print(f"\nmode_callback called with channel={channel} mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
+   debug_lines = []
+   debug_lines.append(f"mode_callback called with channel={channel} mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
-      print("mode_callback: Ignored, not BUTTONUP")
+      debug_lines.append("mode_callback: Ignored, not BUTTONUP")
+      print("\n".join(debug_lines))
       print()
       return
    if alarm_ringing == 1:
-      print("mode_callback: Stopping alarm ring")
+      debug_lines.append("mode_callback: Stopping alarm ring")
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
    elif mode_state == 1:
-      print("mode_callback: Entering alarm settings mode")
+      debug_lines.append("mode_callback: Entering alarm settings mode")
       mode_state = 2
       alarmSet = 1  # Always reset alarmSet when entering alarm settings
    elif mode_state == 2:
-      print("mode_callback: Exiting alarm settings mode")
+      debug_lines.append("mode_callback: Exiting alarm settings mode")
       mode_state = 1
       alphadisplay.fill(0)
       try:
@@ -209,7 +211,8 @@ def mode_callback(channel):
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
-   print(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
+   debug_lines.append(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
+   print("\n".join(debug_lines))
    print()
    return
 
@@ -222,14 +225,16 @@ def aux_callback(channel):
    global alarm_ringing
    global sleep_state
    global auxSet
-   print(f"\naux_callback called with channel={channel} aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   debug_lines = []
+   debug_lines.append(f"aux_callback called with channel={channel} aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
-      print("aux_callback: Ignored, not BUTTONUP")
+      debug_lines.append("aux_callback: Ignored, not BUTTONUP")
+      print("\n".join(debug_lines))
       print()
       return
    if aux_state == 1:
-      print("aux_callback: Entering display mode")
+      debug_lines.append("aux_callback: Entering display mode")
       mode_state = 1
       if alarm_ringing == 1:
          alarm_ringing = 0
@@ -239,13 +244,15 @@ def aux_callback(channel):
       aux_state = 2
       auxSet = 1
       save_settings()
-      print(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      print("\n".join(debug_lines))
       print()
       return
    elif aux_state == 2:
-      print("aux_callback: Exiting display mode")
+      debug_lines.append("aux_callback: Exiting display mode")
       aux_state = 1
-      print(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      print("\n".join(debug_lines))
       print()
       return
 
