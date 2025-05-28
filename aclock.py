@@ -190,8 +190,7 @@ def mode_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("mode_callback: Ignored, not BUTTONUP")
-      print("\n".join(debug_lines))
-      print()
+      print("\n".join(debug_lines), end="\n\n")
       return
    if alarm_ringing == 1:
       debug_lines.append("mode_callback: Stopping alarm ring")
@@ -212,8 +211,7 @@ def mode_callback(channel):
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
    debug_lines.append(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
-   print("\n".join(debug_lines))
-   print()
+   print("\n".join(debug_lines), end="\n\n")
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -230,8 +228,7 @@ def aux_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("aux_callback: Ignored, not BUTTONUP")
-      print("\n".join(debug_lines))
-      print()
+      print("\n".join(debug_lines), end="\n\n")
       return
    if aux_state == 1:
       debug_lines.append("aux_callback: Entering display mode")
@@ -245,15 +242,13 @@ def aux_callback(channel):
       auxSet = 1
       save_settings()
       debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
-      print("\n".join(debug_lines))
-      print()
+      print("\n".join(debug_lines), end="\n\n")
       return
    elif aux_state == 2:
       debug_lines.append("aux_callback: Exiting display mode")
       aux_state = 1
       debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
-      print("\n".join(debug_lines))
-      print()
+      print("\n".join(debug_lines), end="\n\n")
       return
 
 # This is the event callback routine to handle events for the rotary encoder
