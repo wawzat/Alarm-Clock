@@ -200,6 +200,11 @@ def mode_callback(channel):
       aux_state = 1
       alarmSet = 1
       auxSet = 1
+      alphadisplay.fill(0)
+      try:
+         alphadisplay.show()
+      except Exception as e:
+         logger.error("alphadisplay.show() error: %s", str(e))
    elif mode_state == 2:
       print("mode_callback: Exiting alarm mode")
       mode_state = 1
@@ -217,6 +222,14 @@ def mode_callback(channel):
       mode_state = 2
       alarmSet = 1
       auxSet = 1
+      # Show alarm setting on alphanumeric display immediately
+      if alarmSet == 1 or alarmSet == 2:
+         alpha_message = alarm_hour * 100 + alarm_minute
+         display_alphamessage("FLOAT", alpha_message, "ON", 1 if alarmSet == 1 else 3, display_mode, auto_dimLevel, manual_dimLevel)
+      elif alarmSet == 3:
+         display_alphamessage("STR", period, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif alarmSet == 4:
+         display_alphamessage("STR", alarm_stat, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
       aux_state = 1
    print(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    return
@@ -269,12 +282,15 @@ def aux_callback(channel):
       auxSet = 1
       alarmSet = 1
       mode_state = 1
-      # Force display clear
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
+      # Show aux setting on alphanumeric display immediately
+      if auxSet == 1:
+         display_alphamessage("FLOAT", manual_dimLevel, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 2:
+         display_alphamessage("FLOAT", alarmTrack, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 3:
+         display_alphamessage("FLOAT", volLevel, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 4:
+         display_alphamessage("STR", display_override, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
    print(f"aux_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    save_settings()
    return
