@@ -180,13 +180,12 @@ def eds():
 # Used for mode pushbutton
 def mode_callback(channel):
    global mode_state
-   global aux_state
-   global alarm_stat
-   global alarm_ringing
-   global sleep_state
    global alarmSet
    global auxSet
-   print("\nmode_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   global alarm_ringing
+   global alarm_stat
+   global sleep_state
+   print("\nmode_callback called with channel={}", f"mode_state={mode_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
@@ -197,7 +196,6 @@ def mode_callback(channel):
       alarm_stat = "OFF"
       sleep_state = "OFF"
       mode_state = 1
-      aux_state = 1
       alarmSet = 1
       auxSet = 1
       alphadisplay.fill(0)
@@ -216,7 +214,6 @@ def mode_callback(channel):
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
-      aux_state = 1
    else:
       print("mode_callback: Entering alarm mode")
       mode_state = 2
@@ -230,21 +227,20 @@ def mode_callback(channel):
          display_alphamessage("STR", period, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
       elif alarmSet == 4:
          display_alphamessage("STR", alarm_stat, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
-      aux_state = 1
-   print(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   print(f"mode_callback exit: mode_state={mode_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
 # Used for aux pushbutton
 def aux_callback(channel):
-   global mode_state
    global aux_state
-   global alarm_stat
-   global alarm_ringing
-   global sleep_state
    global auxSet
    global alarmSet
-   print("\naux_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   global alarm_ringing
+   global alarm_stat
+   global sleep_state
+   global mode_state
+   print("\naux_callback called with channel={}", f"aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
@@ -255,7 +251,6 @@ def aux_callback(channel):
       alarm_stat = "OFF"
       sleep_state = "OFF"
       aux_state = 1
-      mode_state = 1
       auxSet = 1
       alarmSet = 1
       # Force display clear
@@ -269,7 +264,6 @@ def aux_callback(channel):
       aux_state = 1
       auxSet = 1
       alarmSet = 1
-      mode_state = 1
       # Force display clear
       alphadisplay.fill(0)
       try:
@@ -281,7 +275,6 @@ def aux_callback(channel):
       aux_state = 2
       auxSet = 1
       alarmSet = 1
-      mode_state = 1
       # Show aux setting on alphanumeric display immediately
       if auxSet == 1:
          display_alphamessage("FLOAT", manual_dimLevel, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
@@ -291,7 +284,7 @@ def aux_callback(channel):
          display_alphamessage("FLOAT", volLevel, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
       elif auxSet == 4:
          display_alphamessage("STR", display_override, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
-   print(f"aux_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   print(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    save_settings()
    return
 
