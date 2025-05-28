@@ -403,9 +403,9 @@ def switch_event(event):
 def brightness(autoDim, alarm_stat, display_mode):
    global display_override
    if autoDim == "ON":
-      if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("20:00", "%H:%M").time():
+      if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("22:00", "%H:%M").time():
          display_mode = "MANUAL_DIM"
-      elif dt.strptime("20:00", "%H:%M").time() < now.time() <= dt.strptime("23:59", "%H:%M").time():
+      elif dt.strptime("22:00", "%H:%M").time() < now.time() <= dt.strptime("23:59", "%H:%M").time():
          display_mode = "AUTO_DIM"
       if alarm_stat == "OFF":
          if dt.strptime("00:00", "%H:%M").time() < now.time() <= dt.strptime("07:00", "%H:%M").time():
