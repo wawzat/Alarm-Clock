@@ -185,6 +185,7 @@ def mode_callback(channel):
    global alarm_ringing
    global sleep_state
    global alarmSet
+   global auxSet
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
@@ -195,10 +196,13 @@ def mode_callback(channel):
       sleep_state = "OFF"
       mode_state = 1
       aux_state = 1
+      alarmSet = 1
+      auxSet = 1
    elif mode_state == 2:
       # If already in alarm mode, exit to normal
       mode_state = 1
       alarmSet = 1
+      auxSet = 1
       alphadisplay.fill(0)
       try:
          alphadisplay.show()
@@ -210,6 +214,7 @@ def mode_callback(channel):
       # Enter alarm mode, exit display mode if needed
       mode_state = 2
       alarmSet = 1
+      auxSet = 1
       aux_state = 1
    return
 
@@ -222,6 +227,7 @@ def aux_callback(channel):
    global alarm_ringing
    global sleep_state
    global auxSet
+   global alarmSet
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
@@ -232,15 +238,19 @@ def aux_callback(channel):
       sleep_state = "OFF"
       aux_state = 1
       mode_state = 1
+      auxSet = 1
+      alarmSet = 1
    elif aux_state == 2:
       # If already in display mode, exit to normal
       aux_state = 1
       auxSet = 1
+      alarmSet = 1
       mode_state = 1
    else:
       # Enter display mode, exit alarm mode if needed
       aux_state = 2
       auxSet = 1
+      alarmSet = 1
       mode_state = 1
    save_settings()
    return
