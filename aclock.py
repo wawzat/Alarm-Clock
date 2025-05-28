@@ -241,6 +241,19 @@ def aux_callback(channel):
       aux_state = 2
       auxSet = 1
       save_settings()
+      # Immediately update the alphanumeric display when entering display mode
+      if auxSet == 1:
+         alpha_message = manual_dimLevel
+         display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 2:
+         alpha_message = alarmTrack
+         display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 3:
+         alpha_message = volLevel
+         display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+      elif auxSet == 4:
+         alpha_message = display_override
+         display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
       debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
       print("\n".join(debug_lines), end="\n\n")
       return
