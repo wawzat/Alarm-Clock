@@ -307,7 +307,6 @@ def switch_event(event):
             else:
                alarm_minute -= minute_incr
             print(f"counter clockwise {alarm_minute}")
-            time.sleep(.2)
          if alarmSet == 3:
             if period == "AM":
                period = "PM"
@@ -351,20 +350,14 @@ def switch_event(event):
          else:
             alarmTrack += 1
          if use_audio:
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            time.sleep(.5)
-         else:
-            time.sleep(.5)
+            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
       elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==2:
          if alarmTrack == 1:
             alarmTrack = 6
          else:
             alarmTrack -= 1
          if use_audio:
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            time.sleep(.5)
-         else:
-            time.sleep(.5)
+            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
       elif event == RotaryEncoder.CLOCKWISE and auxSet==3:
          if volLevel == 95:
             volLevel = 0
@@ -372,10 +365,7 @@ def switch_event(event):
             volLevel += 1
          if use_audio:
             mixer.setvolume(volLevel)
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            time.sleep(.5)
-         else:
-            time.sleep(.5)
+            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
       elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==3:
          if volLevel == 0:
             volLevel = 95
@@ -383,10 +373,7 @@ def switch_event(event):
             volLevel -= 1
          if use_audio:
             mixer.setvolume(volLevel)
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            time.sleep(.5)
-         else:
-            time.sleep(.5)
+            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
       elif event == RotaryEncoder.CLOCKWISE and auxSet==4:
          if display_override == "ON":
             display_override = "OFF"
@@ -636,18 +623,12 @@ try:
                display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-                  time.sleep(.5)
-               else:
-                  time.sleep(.5)
             elif auxSet == 3:
                alpha_message = volLevel
                display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-                  time.sleep(.5)
-               else:
-                  time.sleep(.5)
             elif auxSet == 4:
                alpha_message = display_override
                display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
