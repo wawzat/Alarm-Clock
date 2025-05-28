@@ -28,9 +28,9 @@ logger.addHandler(handler)
 # Define rotary encoder and separate pushbutton GPIO input pins (instantiate gpiozero objects here)
 rotary_a = DigitalInputDevice(19, pull_up=True)
 rotary_b = DigitalInputDevice(26, pull_up=True)
-rotary_button = Button(12, pull_up=True)
-alarm_settings_button = Button(13, pull_up=True)
-display_settings_button = Button(21, pull_up=True)
+rotary_button = Button(12, pull_up=True, bounce_time=0.1)
+alarm_settings_button = Button(13, pull_up=True, bounce_time=0.1)
+display_settings_button = Button(21, pull_up=True, bounce_time=0.1)
 
 # Define EDS GPIO input and output pins and setup gpiozero devices
 TRIG = 5
@@ -186,11 +186,13 @@ def mode_callback(channel):
    global sleep_state
    global alarmSet
    global auxSet
+   print(f"mode_callback called with channel={channel}, mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
    # Toggle logic: pressing alarm button always enters/exits alarm mode
    if alarm_ringing == 1:
+      print("mode_callback: alarm_ringing==1, resetting states")
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
@@ -199,7 +201,7 @@ def mode_callback(channel):
       alarmSet = 1
       auxSet = 1
    elif mode_state == 2:
-      # If already in alarm mode, exit to normal
+      print("mode_callback: Exiting alarm mode")
       mode_state = 1
       alarmSet = 1
       auxSet = 1
@@ -211,11 +213,12 @@ def mode_callback(channel):
       time.sleep(.5)
       aux_state = 1
    else:
-      # Enter alarm mode, exit display mode if needed
+      print("mode_callback: Entering alarm mode")
       mode_state = 2
       alarmSet = 1
       auxSet = 1
       aux_state = 1
+   print(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -228,11 +231,13 @@ def aux_callback(channel):
    global sleep_state
    global auxSet
    global alarmSet
+   print(f"aux_callback called with channel={channel}, mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
    # Toggle logic: pressing display button always enters/exits display mode
    if alarm_ringing == 1:
+      print("aux_callback: alarm_ringing==1, resetting states")
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
@@ -241,17 +246,18 @@ def aux_callback(channel):
       auxSet = 1
       alarmSet = 1
    elif aux_state == 2:
-      # If already in display mode, exit to normal
+      print("aux_callback: Exiting display mode")
       aux_state = 1
       auxSet = 1
       alarmSet = 1
       mode_state = 1
    else:
-      # Enter display mode, exit alarm mode if needed
+      print("aux_callback: Entering display mode")
       aux_state = 2
       auxSet = 1
       alarmSet = 1
       mode_state = 1
+   print(f"aux_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    save_settings()
    return
 
