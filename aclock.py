@@ -28,9 +28,9 @@ logger.addHandler(handler)
 # Define rotary encoder and separate pushbutton GPIO input pins (instantiate gpiozero objects here)
 rotary_a = DigitalInputDevice(19, pull_up=True)
 rotary_b = DigitalInputDevice(26, pull_up=True)
-rotary_button = Button(12, pull_up=True, bounce_time=0.1)
-alarm_settings_button = Button(13, pull_up=True, bounce_time=0.1)
-display_settings_button = Button(21, pull_up=True, bounce_time=0.1)
+rotary_button = Button(12, pull_up=True)
+alarm_settings_button = Button(13, pull_up=True)
+display_settings_button = Button(21, pull_up=True)
 
 # Define EDS GPIO input and output pins and setup gpiozero devices
 TRIG = 5
@@ -185,42 +185,33 @@ def mode_callback(channel):
    global alarm_ringing
    global sleep_state
    global alarmSet
-   global auxSet
-   print("\nmode_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   debug_lines = []
+   debug_lines.append(f"mode_callback called with channel={channel} mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
+      debug_lines.append("mode_callback: Ignored, not BUTTONUP")
+      print("\n".join(debug_lines), end="\n\n")
       return
-   # Toggle logic: pressing alarm button always enters/exits alarm mode
    if alarm_ringing == 1:
-      print("mode_callback: alarm_ringing==1, resetting states")
+      debug_lines.append("mode_callback: Stopping alarm ring")
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
-      mode_state = 1
-      aux_state = 1
-      alarmSet = 1
-      auxSet = 1
-      show_default_alpha()
+   elif mode_state == 1:
+      debug_lines.append("mode_callback: Entering alarm settings mode")
+      mode_state = 2
+      alarmSet = 1  # Always reset alarmSet when entering alarm settings
    elif mode_state == 2:
-      print("mode_callback: Exiting alarm mode")
+      debug_lines.append("mode_callback: Exiting alarm settings mode")
       mode_state = 1
-      alarmSet = 1
-      auxSet = 1
       alphadisplay.fill(0)
       try:
          alphadisplay.show()
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
-      aux_state = 1
-      show_default_alpha()
-   else:
-      print("mode_callback: Entering alarm mode")
-      mode_state = 2
-      alarmSet = 1
-      auxSet = 1
-      aux_state = 1
-   print(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   debug_lines.append(f"mode_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}")
+   print("\n".join(debug_lines), end="\n\n")
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -232,56 +223,33 @@ def aux_callback(channel):
    global alarm_ringing
    global sleep_state
    global auxSet
-   global alarmSet
-   print("\naux_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   debug_lines = []
+   debug_lines.append(f"aux_callback called with channel={channel} aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
+      debug_lines.append("aux_callback: Ignored, not BUTTONUP")
+      print("\n".join(debug_lines), end="\n\n")
       return
-   # Toggle logic: pressing display button always enters/exits display mode
-   if alarm_ringing == 1:
-      print("aux_callback: alarm_ringing==1, resetting states")
-      alarm_ringing = 0
-      alarm_stat = "OFF"
-      sleep_state = "OFF"
-      aux_state = 1
+   if aux_state == 1:
+      debug_lines.append("aux_callback: Entering display mode")
       mode_state = 1
-      auxSet = 1
-      alarmSet = 1
-      # Force display clear
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
-      show_default_alpha()
-   elif aux_state == 2:
-      print("aux_callback: Exiting display mode")
-      aux_state = 1
-      auxSet = 1
-      alarmSet = 1
-      mode_state = 1
-      # Force display clear
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
-      show_default_alpha()
-   else:
-      print("aux_callback: Entering display mode")
+      if alarm_ringing == 1:
+         alarm_ringing = 0
+         alarm_stat = "OFF"
+         sleep_state = "OFF"
+      # Always reset aux_state and auxSet when entering display settings
       aux_state = 2
       auxSet = 1
-      alarmSet = 1
-      mode_state = 1
-      # Force display clear
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
-   print(f"aux_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
-   save_settings()
-   return
+      save_settings()
+      debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      print("\n".join(debug_lines), end="\n\n")
+      return
+   elif aux_state == 2:
+      debug_lines.append("aux_callback: Exiting display mode")
+      aux_state = 1
+      debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      print("\n".join(debug_lines), end="\n\n")
+      return
 
 # This is the event callback routine to handle events for the rotary encoder
 def switch_event(event):
@@ -482,7 +450,7 @@ def debug_brightness(autoDim, alarm_stat, display_mode):
             display_mode = "MANUAL_DIM"
    return display_mode
 
-def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode):
+def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode, auto_dimLevel, manual_dimLevel):
     global last_alpha_message, last_alpha_brightness, last_alpha_type
     if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
         alphadisplay.fill(0)
@@ -589,19 +557,6 @@ def load_settings():
 # Load settings at startup
 load_settings()
 
-def show_default_alpha():
-    now = get_time()
-    # Show time in HHMM format on alpha display
-    alpha_message = int(now.strftime("%I")) * 100 + int(now.strftime("%M"))
-    dimLevel = manual_dimLevel if display_mode == "MANUAL_DIM" else auto_dimLevel
-    alphadisplay.fill(0)
-    alphadisplay.print(str(alpha_message))
-    alphadisplay.brightness = dimLevel / 15.0
-    try:
-        alphadisplay.show()
-    except Exception as e:
-        logger.error("alphadisplay.show() error: %s", str(e))
-
 try:
    while True:
       now = get_time()
@@ -663,34 +618,34 @@ try:
          if mode_state == 2:
             if alarmSet == 1:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 1, display_mode)
+               display_alphamessage("FLOAT", alpha_message, "ON", 1, display_mode, auto_dimLevel, manual_dimLevel)
             elif alarmSet == 2:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 3, display_mode)
+               display_alphamessage("FLOAT", alpha_message, "ON", 3, display_mode, auto_dimLevel, manual_dimLevel)
             elif alarmSet == 3:
                alpha_message = period
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
             elif alarmSet == 4:
                alpha_message = alarm_stat
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
          elif aux_state == 2:
             if auxSet == 1:
                alpha_message = manual_dimLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
             elif auxSet == 2:
                alpha_message = alarmTrack
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif auxSet == 3:
                alpha_message = volLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif auxSet == 4:
                alpha_message = display_override
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
          elif (mode_state == 1 and aux_state == 1):
            alphadisplay.fill(0)
            try:
