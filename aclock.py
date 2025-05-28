@@ -188,22 +188,29 @@ def mode_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
-   aux_state = 1
+   # Toggle logic: pressing alarm button always enters/exits alarm mode
    if alarm_ringing == 1:
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
-   elif mode_state == 1:
-      mode_state = 2
-      alarmSet = 1  # Always reset alarmSet when entering alarm settings
-   elif mode_state == 2:
       mode_state = 1
+      aux_state = 1
+   elif mode_state == 2:
+      # If already in alarm mode, exit to normal
+      mode_state = 1
+      alarmSet = 1
       alphadisplay.fill(0)
       try:
          alphadisplay.show()
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
+      aux_state = 1
+   else:
+      # Enter alarm mode, exit display mode if needed
+      mode_state = 2
+      alarmSet = 1
+      aux_state = 1
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -218,14 +225,23 @@ def aux_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
-   mode_state = 1
+   # Toggle logic: pressing display button always enters/exits display mode
    if alarm_ringing == 1:
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
-   # Always reset aux_state and auxSet when entering display settings
-   aux_state = 2
-   auxSet = 1
+      aux_state = 1
+      mode_state = 1
+   elif aux_state == 2:
+      # If already in display mode, exit to normal
+      aux_state = 1
+      auxSet = 1
+      mode_state = 1
+   else:
+      # Enter display mode, exit alarm mode if needed
+      aux_state = 2
+      auxSet = 1
+      mode_state = 1
    save_settings()
    return
 
