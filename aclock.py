@@ -200,6 +200,7 @@ def mode_callback(channel):
       aux_state = 1
       alarmSet = 1
       auxSet = 1
+      show_default_alpha()
    elif mode_state == 2:
       print("mode_callback: Exiting alarm mode")
       mode_state = 1
@@ -212,6 +213,7 @@ def mode_callback(channel):
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
       aux_state = 1
+      show_default_alpha()
    else:
       print("mode_callback: Entering alarm mode")
       mode_state = 2
@@ -251,6 +253,7 @@ def aux_callback(channel):
          alphadisplay.show()
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
+      show_default_alpha()
    elif aux_state == 2:
       print("aux_callback: Exiting display mode")
       aux_state = 1
@@ -263,6 +266,7 @@ def aux_callback(channel):
          alphadisplay.show()
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
+      show_default_alpha()
    else:
       print("aux_callback: Entering display mode")
       aux_state = 2
@@ -584,6 +588,19 @@ def load_settings():
 
 # Load settings at startup
 load_settings()
+
+def show_default_alpha():
+    now = get_time()
+    # Show time in HHMM format on alpha display
+    alpha_message = int(now.strftime("%I")) * 100 + int(now.strftime("%M"))
+    dimLevel = manual_dimLevel if display_mode == "MANUAL_DIM" else auto_dimLevel
+    alphadisplay.fill(0)
+    alphadisplay.print(str(alpha_message))
+    alphadisplay.brightness = dimLevel / 15.0
+    try:
+        alphadisplay.show()
+    except Exception as e:
+        logger.error("alphadisplay.show() error: %s", str(e))
 
 try:
    while True:
