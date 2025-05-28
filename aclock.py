@@ -176,6 +176,14 @@ def eds():
    distance = round(distance, 2)
    return distance
 
+# Helper function to clear and update the alphanumeric display with error handling
+def clear_alphadisplay():
+    alphadisplay.fill(0)
+    try:
+        alphadisplay.show()
+    except Exception as e:
+        logger.error("alphadisplay.show() error: %s", str(e))
+
 # Callback function used by GPIO interrupt, runs in separate thread
 # Used for mode pushbutton
 def mode_callback(channel):
@@ -240,6 +248,7 @@ def aux_callback(channel):
       # Always reset aux_state and auxSet when entering display settings
       aux_state = 2
       auxSet = 1
+      clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
       debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
       print("\n".join(debug_lines), end="\n\n")
@@ -247,6 +256,7 @@ def aux_callback(channel):
    elif aux_state == 2:
       debug_lines.append("aux_callback: Exiting display mode")
       aux_state = 1
+      clear_alphadisplay()  # Clear display when exiting display mode
       debug_lines.append(f"aux_callback exit: aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
       print("\n".join(debug_lines), end="\n\n")
       return
