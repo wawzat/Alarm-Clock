@@ -491,6 +491,10 @@ def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, man
 # Define the rotary and stand-alone switches
 rswitch = RotaryEncoder(rotary_a, rotary_b, rotary_button, mode_button, aux_button, switch_event, mode_callback, aux_callback, 2)
 
+# Add cache variables for last displayed value and brightness
+last_num_message = None
+last_num_brightness = None
+
 try:
    while True:
       now = get_time()
@@ -529,7 +533,25 @@ try:
             display_override = "OFF"
       if display_mode != "MANUAL_OFF":
          num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
-         display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, manual_dimLevel)
+         # Determine current brightness
+         if display_mode == "AUTO_DIM":
+            current_brightness = auto_dimLevel / 15.0
+         elif display_mode == "MANUAL_DIM":
+            current_brightness = manual_dimLevel / 15.0
+         else:
+            current_brightness = numdisplay.brightness
+         # Only update if value or brightness changed
+         if (num_message != last_num_message) or (current_brightness != last_num_brightness):
+            numdisplay.fill(0)
+            numdisplay.print(str(num_message))
+            numdisplay.colon = now.second % 2
+            numdisplay.brightness = current_brightness
+            try:
+               numdisplay.show()
+            except Exception as e:
+               logger.error("numdisplay.show() error: %s", str(e))
+            last_num_message = num_message
+            last_num_brightness = current_brightness
          if mode_state == 2:
             if alarmSet == 1:
                alpha_message = alarm_hour*100 + alarm_minute
@@ -586,6 +608,8 @@ try:
             logger.error("numdisplay.show() error: %s", str(e))
       if alarm_stat == "ON":
          check_alarm(now)
+
+      time.sleep(0.05)  # Add a small delay to reduce update rate
 
 except KeyboardInterrupt:
    alphadisplay.fill(0)
