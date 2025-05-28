@@ -186,7 +186,7 @@ def mode_callback(channel):
    global sleep_state
    global alarmSet
    global auxSet
-   print(f"mode_callback called with channel={channel}, mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   print("\nmode_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
@@ -231,7 +231,7 @@ def aux_callback(channel):
    global sleep_state
    global auxSet
    global alarmSet
-   print(f"aux_callback called with channel={channel}, mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   print("\naux_callback called with channel={}", f"mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       return
