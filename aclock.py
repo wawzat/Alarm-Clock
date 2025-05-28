@@ -195,7 +195,7 @@ def mode_callback(channel):
       sleep_state = "OFF"
    elif mode_state == 1:
       mode_state = 2
-      alarmSet = 1
+      alarmSet = 1  # Always reset alarmSet when entering alarm settings
    elif mode_state == 2:
       mode_state = 1
       alphadisplay.fill(0)
@@ -223,17 +223,9 @@ def aux_callback(channel):
       alarm_ringing = 0
       alarm_stat = "OFF"
       sleep_state = "OFF"
-   elif aux_state == 1:
-      aux_state = 2
-      auxSet = 1
-   elif aux_state == 2:
-      aux_state = 1
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
-      time.sleep(.5)
+   # Always reset aux_state and auxSet when entering display settings
+   aux_state = 2
+   auxSet = 1
    save_settings()
    return
 
