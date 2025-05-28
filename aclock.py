@@ -5,13 +5,12 @@
 # 20171118
 # 20250526
 import os
-#import alsaaudio
 import time
 import datetime
 from datetime import datetime as dt
 from adafruit_ht16k33.segments import Seg7x4
 from adafruit_ht16k33.segments import Seg14x4
-import RPi.GPIO as GPIO
+from gpiozero import Button, DigitalInputDevice, DigitalOutputDevice
 from rotary_class_jsl import RotaryEncoder
 import logging
 import board
@@ -25,22 +24,21 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# Define rotary encoder and separate pushbutton GPIO input pins (GPIO setup in separate rotary_class)
-PIN_A = 19    # Pin 19
-PIN_B = 26    # Pin 26
-BUTTON = 12   # Pin 12
-mode_switch = 13
-aux_switch = 21
+# Define rotary encoder and separate pushbutton GPIO input pins (instantiate gpiozero objects here)
+rotary_a = DigitalInputDevice(19, pull_up=True)
+rotary_b = DigitalInputDevice(26, pull_up=True)
+rotary_button = Button(12, pull_up=True)
+mode_button = Button(13, pull_up=True)
+aux_button = Button(21, pull_up=True)
 
-# Define EDS GPIO input and output pins and setup GPIO
+# Define EDS GPIO input and output pins and setup gpiozero devices
 TRIG = 5
 ECHO = 6
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TRIG,GPIO.OUT)
-GPIO.setup(ECHO,GPIO.IN)
+trig = DigitalOutputDevice(TRIG)
+echo = DigitalInputDevice(ECHO)
 
 # Pulse EDS and wait for sensor to settle
-GPIO.output(TRIG, False)
+trig.off()
 print("Waiting For Sensor To Settle")
 time.sleep(2)
 
@@ -147,22 +145,26 @@ def check_alarm(now):
    return
 
 def eds():
-   GPIO.output(TRIG, False)
+   trig.off()
    time.sleep(0.000002)
-   GPIO.output(TRIG, True)
+   trig.on()
    time.sleep(0.000015)
-   GPIO.output(TRIG, False)
-   while GPIO.input(ECHO)==0:
-      pulse_start = time.time()
-      #print "0"
-   while GPIO.input(ECHO)==1:
-      pulse_end = time.time()
-      #print "1"
+   trig.off()
+   # Wait for echo to go high
+   timeout = time.time() + 0.05
+   while not echo.value:
+      if time.time() > timeout:
+         return -1
+   pulse_start = time.time()
+   # Wait for echo to go low
+   timeout = time.time() + 0.05
+   while echo.value:
+      if time.time() > timeout:
+         return -1
+   pulse_end = time.time()
    pulse_duration = pulse_end - pulse_start
-   # distance = pulse_duration * 17150 #CM
    distance = pulse_duration * 6752
    distance = round(distance, 2)
-   # print "Distance: ",distance," in"   
    return distance
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -482,7 +484,7 @@ def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, man
    return
 
 # Define the rotary and stand-alone switches
-rswitch = RotaryEncoder(PIN_A,PIN_B,BUTTON,mode_switch,aux_switch,switch_event,mode_callback,aux_callback,2)
+rswitch = RotaryEncoder(rotary_a, rotary_b, rotary_button, mode_button, aux_button, switch_event, mode_callback, aux_callback, 2)
 
 try:
    while True:
@@ -591,4 +593,3 @@ except KeyboardInterrupt:
       numdisplay.show()
    except Exception as e:
       logger.error("numdisplay.show() error: %s", str(e))
-   GPIO.cleanup()

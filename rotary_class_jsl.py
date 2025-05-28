@@ -73,7 +73,7 @@
 # Modified by JSL 20170910 adding two stand-alone switches
 
 import sys
-import lgpio
+from gpiozero import Button, DigitalInputDevice
 
 R_CCW_BEGIN   = 0x1
 R_CW_BEGIN    = 0x2
@@ -151,6 +151,7 @@ class RotaryEncoder:
     BUTTONUP=4
 
     def __init__(self, pinA, pinB, button, mode_switch, aux_switch, callback, mode_callback, aux_callback, revision):
+        # pinA, pinB, button, mode_switch, aux_switch are now gpiozero objects
         self.pinA = pinA
         self.pinB = pinB
         self.button = button
@@ -159,58 +160,46 @@ class RotaryEncoder:
         self.callback = callback
         self.mode_callback = mode_callback
         self.aux_callback = aux_callback
-        self.h = lgpio.gpiochip_open(0)
-        # Claim pins as input with pull-up
-        lgpio.gpio_claim_input(self.h, self.pinA, lgpio.SET_PULL_UP)
-        lgpio.gpio_claim_input(self.h, self.pinB, lgpio.SET_PULL_UP)
-        lgpio.gpio_claim_input(self.h, self.button, lgpio.SET_PULL_UP)
-        if self.mode_switch is not None:
-            lgpio.gpio_claim_input(self.h, self.mode_switch, lgpio.SET_PULL_UP)
-        if self.aux_switch is not None:
-            lgpio.gpio_claim_input(self.h, self.aux_switch, lgpio.SET_PULL_UP)
         # Register callbacks for edge events
-        self.cbA = lgpio.callback(self.h, self.pinA, lgpio.BOTH_EDGES, self._switch_event)
-        self.cbB = lgpio.callback(self.h, self.pinB, lgpio.BOTH_EDGES, self._switch_event)
-        self.cbBtn = lgpio.callback(self.h, self.button, lgpio.BOTH_EDGES, self._button_event)
-        self.cbMode = lgpio.callback(self.h, self.mode_switch, lgpio.BOTH_EDGES, self._mode_callback)
-        self.cbAux = lgpio.callback(self.h, self.aux_switch, lgpio.BOTH_EDGES, self._aux_callback)
+        self.pinA.when_activated = self._switch_event
+        self.pinA.when_deactivated = self._switch_event
+        self.pinB.when_activated = self._switch_event
+        self.pinB.when_deactivated = self._switch_event
+        self.button.when_pressed = self._button_down
+        self.button.when_released = self._button_up
+        if self.mode_switch:
+            self.mode_switch.when_pressed = self._mode_down
+            self.mode_switch.when_released = self._mode_up
+        if self.aux_switch:
+            self.aux_switch.when_pressed = self._aux_down
+            self.aux_switch.when_released = self._aux_up
 
-    def _switch_event(self, chip, gpio, level, tick):
-        if level == 2:
-            return
-        pinstate = (lgpio.gpio_read(self.h, self.pinB) << 1) | lgpio.gpio_read(self.h, self.pinA)
+    def _switch_event(self):
+        pinstate = (self.pinB.value << 1) | self.pinA.value
         self.state = STATE_TAB[self.state & 0xf][pinstate]
         result = self.state & 0x30
         if result:
             event = self.CLOCKWISE if result == 32 else self.ANTICLOCKWISE
             self.callback(event)
 
-    def _button_event(self, chip, gpio, level, tick):
-        if level == 2:
-            return
-        if lgpio.gpio_read(self.h, self.button):
-            event = self.BUTTONUP
-        else:
-            event = self.BUTTONDOWN
-        self.callback(event)
+    def _button_down(self):
+        self.callback(self.BUTTONDOWN)
 
-    def _mode_callback(self, chip, gpio, level, tick):
-        if level == 2:
-            return
-        if lgpio.gpio_read(self.h, self.mode_switch):
-            channel = self.BUTTONUP
-        else:
-            channel = self.BUTTONDOWN
-        self.mode_callback(channel)
+    def _button_up(self):
+        self.callback(self.BUTTONUP)
 
-    def _aux_callback(self, chip, gpio, level, tick):
-        if level == 2:
-            return
-        if lgpio.gpio_read(self.h, self.aux_switch):
-            channel = self.BUTTONUP
-        else:
-            channel = self.BUTTONDOWN
-        self.aux_callback(channel)
+    def _mode_down(self):
+        self.mode_callback(self.BUTTONDOWN)
+
+    def _mode_up(self):
+        self.mode_callback(self.BUTTONUP)
+
+    def _aux_down(self):
+        self.aux_callback(self.BUTTONDOWN)
+
+    def _aux_up(self):
+        self.aux_callback(self.BUTTONUP)
 
     def getSwitchState(self, switch):
-        return lgpio.gpio_read(self.h, switch)
+        # switch should be a Button or DigitalInputDevice instance
+        return switch.value
