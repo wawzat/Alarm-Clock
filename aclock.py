@@ -449,8 +449,7 @@ def display_alphamessage(message_type, alpha_message, decimal_state, decimal_pla
          alphadisplay.print(str(alpha_message))
       elif message_type == "STR":
          alphadisplay.print(alpha_message)
-      if decimal_state == "ON":
-         alphadisplay.set_decimal(decimal_place,True)
+      # Removed alphadisplay.set_decimal(decimal_place,True) as Seg14x4 does not support it
       print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
       alphadisplay.brightness = dimLevel / 15.0
       try:
