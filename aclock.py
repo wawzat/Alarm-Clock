@@ -439,31 +439,41 @@ def debug_brightness(autoDim, alarm_stat, display_mode):
    return display_mode
 
 def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode, auto_dimLevel, manual_dimLevel):
-   if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
-      alphadisplay.fill(0)
-      try:
-         alphadisplay.show()
-      except Exception as e:
-         logger.error("alphadisplay.show() error: %s", str(e))
-   elif display_mode == "AUTO_DIM" or display_mode == "MANUAL_DIM":
-      if display_mode == "AUTO_DIM":
-         dimLevel = auto_dimLevel
-      elif display_mode == "MANUAL_DIM":
-         dimLevel = manual_dimLevel
-      alphadisplay.fill(0)
-      if message_type == "FLOAT":
-         alphadisplay.print(str(alpha_message))
-      elif message_type == "STR":
-         alphadisplay.print(alpha_message)
-      # Removed alphadisplay.set_decimal(decimal_place,True) as Seg14x4 does not support it
-      print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
-      alphadisplay.brightness = dimLevel / 15.0
-      try:
-         alphadisplay.show()
-      except Exception as e:
+    global last_alpha_message, last_alpha_brightness, last_alpha_type
+    if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
+        alphadisplay.fill(0)
+        try:
+            alphadisplay.show()
+        except Exception as e:
             logger.error("alphadisplay.show() error: %s", str(e))
-      time.sleep(.02)
-   return
+        # Reset cache so next message will display
+        last_alpha_message = None
+        last_alpha_brightness = None
+        last_alpha_type = None
+    elif display_mode == "AUTO_DIM" or display_mode == "MANUAL_DIM":
+        if display_mode == "AUTO_DIM":
+            dimLevel = auto_dimLevel
+        elif display_mode == "MANUAL_DIM":
+            dimLevel = manual_dimLevel
+        # Only update if value or brightness or type changed
+        current_brightness = dimLevel / 15.0
+        if (alpha_message != last_alpha_message) or (current_brightness != last_alpha_brightness) or (message_type != last_alpha_type):
+            alphadisplay.fill(0)
+            if message_type == "FLOAT":
+                alphadisplay.print(str(alpha_message))
+            elif message_type == "STR":
+                alphadisplay.print(alpha_message)
+            print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
+            alphadisplay.brightness = current_brightness
+            try:
+                alphadisplay.show()
+            except Exception as e:
+                logger.error("alphadisplay.show() error: %s", str(e))
+            last_alpha_message = alpha_message
+            last_alpha_brightness = current_brightness
+            last_alpha_type = message_type
+        time.sleep(.02)
+    return
 
 def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, manual_dimLevel):
    if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
@@ -494,6 +504,9 @@ rswitch = RotaryEncoder(rotary_a, rotary_b, rotary_button, alarm_settings_button
 # Add cache variables for last displayed value and brightness
 last_num_message = None
 last_num_brightness = None
+last_alpha_message = None
+last_alpha_brightness = None
+last_alpha_type = None
 
 try:
    while True:
