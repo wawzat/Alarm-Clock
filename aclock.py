@@ -15,6 +15,7 @@ from rotary_class_jsl import RotaryEncoder
 import logging
 import board
 import busio
+import json
 
 # Set up logger for error logging
 logger = logging.getLogger("aclock")
@@ -86,6 +87,14 @@ distance = 0
 autoDim = "ON"
 loop_count = 0
 debug = "NO"
+
+SETTINGS_FILE = "settings.json"
+
+# List of settings to persist
+PERSISTED_SETTINGS = [
+    "alarm_hour", "alarm_minute", "period", "alarm_stat", "alarmTrack", "volLevel",
+    "manual_dimLevel", "autoDim", "display_mode", "display_override"
+]
 
 def get_time():
    now = dt.now()
@@ -225,6 +234,7 @@ def aux_callback(channel):
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
+   save_settings()
    return
 
 # This is the event callback routine to handle events for the rotary encoder
@@ -398,6 +408,7 @@ def switch_event(event):
       elif alarm_ringing == 0 and sleep_state == "ON":
          alarm_stat = "OFF"
          sleep_state = "OFF"
+   save_settings()
    return
 
 def brightness(autoDim, alarm_stat, display_mode):
@@ -507,6 +518,43 @@ last_num_brightness = None
 last_alpha_message = None
 last_alpha_brightness = None
 last_alpha_type = None
+
+def save_settings():
+    settings = {k: globals()[k] for k in PERSISTED_SETTINGS}
+    # Save alarm_time as string
+    settings["alarm_time"] = alarm_time.strftime("%H:%M")
+    try:
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(settings, f)
+    except Exception as e:
+        logger.error("Failed to save settings: %s", str(e))
+
+def load_settings():
+    global alarm_hour, alarm_minute, period, alarm_stat, alarmTrack, volLevel
+    global manual_dimLevel, autoDim, display_mode, display_override, alarm_time
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            settings = json.load(f)
+        alarm_hour = settings.get("alarm_hour", alarm_hour)
+        alarm_minute = settings.get("alarm_minute", alarm_minute)
+        period = settings.get("period", period)
+        alarm_stat = settings.get("alarm_stat", alarm_stat)
+        alarmTrack = settings.get("alarmTrack", alarmTrack)
+        volLevel = settings.get("volLevel", volLevel)
+        manual_dimLevel = settings.get("manual_dimLevel", manual_dimLevel)
+        autoDim = settings.get("autoDim", autoDim)
+        display_mode = settings.get("display_mode", display_mode)
+        display_override = settings.get("display_override", display_override)
+        alarm_time_str = settings.get("alarm_time", None)
+        if alarm_time_str:
+            alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        logger.error("Failed to load settings: %s", str(e))
+
+# Load settings at startup
+load_settings()
 
 try:
    while True:
