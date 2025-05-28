@@ -176,6 +176,9 @@ def mode_callback(channel):
    global alarm_ringing
    global sleep_state
    global alarmSet
+   # Only act on BUTTONUP (button release)
+   if channel != RotaryEncoder.BUTTONUP:
+      return
    aux_state = 1
    if alarm_ringing == 1:
       alarm_ringing = 0
@@ -203,6 +206,9 @@ def aux_callback(channel):
    global alarm_ringing
    global sleep_state
    global auxSet
+   # Only act on BUTTONUP (button release)
+   if channel != RotaryEncoder.BUTTONUP:
+      return
    mode_state = 1
    if alarm_ringing == 1:
       alarm_ringing = 0
