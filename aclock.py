@@ -28,8 +28,8 @@ logger.addHandler(handler)
 rotary_a = DigitalInputDevice(19, pull_up=True)
 rotary_b = DigitalInputDevice(26, pull_up=True)
 rotary_button = Button(12, pull_up=True)
-mode_button = Button(13, pull_up=True)
-aux_button = Button(21, pull_up=True)
+alarm_settings_button = Button(13, pull_up=True)
+display_settings_button = Button(21, pull_up=True)
 
 # Define EDS GPIO input and output pins and setup gpiozero devices
 TRIG = 5
@@ -489,7 +489,7 @@ def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, man
    return
 
 # Define the rotary and stand-alone switches
-rswitch = RotaryEncoder(rotary_a, rotary_b, rotary_button, mode_button, aux_button, switch_event, mode_callback, aux_callback, 2)
+rswitch = RotaryEncoder(rotary_a, rotary_b, rotary_button, alarm_settings_button, display_settings_button, switch_event, mode_callback, aux_callback, 2)
 
 # Add cache variables for last displayed value and brightness
 last_num_message = None
