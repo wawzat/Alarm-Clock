@@ -450,7 +450,7 @@ def debug_brightness(autoDim, alarm_stat, display_mode):
             display_mode = "MANUAL_DIM"
    return display_mode
 
-def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode, auto_dimLevel, manual_dimLevel):
+def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode):
     global last_alpha_message, last_alpha_brightness, last_alpha_type
     if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
         alphadisplay.fill(0)
@@ -487,7 +487,7 @@ def display_alphamessage(message_type, alpha_message, decimal_state, decimal_pla
         time.sleep(.02)
     return
 
-def display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, manual_dimLevel):
+def display_nummessage(num_message, display_mode):
    if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
       numdisplay.fill(0)
       try:
@@ -576,7 +576,7 @@ try:
             while loop_count <= 100:
                now = get_time()
                num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
-               display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, manual_dimLevel)
+               display_nummessage(num_message, display_mode)
                time.sleep(.03) # note will be 5 sec delay inluding .02 sec in display_nummessage
                loop_count += 1
             display_mode = "AUTO_OFF"
@@ -588,7 +588,7 @@ try:
             while loop_count <= 100:
                now = get_time()
                num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
-               display_nummessage(num_message, alarm_stat, display_mode, auto_dimLevel, manual_dimLevel)
+               display_nummessage(num_message, display_mode)
                time.sleep(.03) # note will be 5 sec delay inluding .02 sec in display_nummessage
                loop_count += 1
             display_mode = "MANUAL_OFF"
@@ -618,34 +618,34 @@ try:
          if mode_state == 2:
             if alarmSet == 1:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 1, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("FLOAT", alpha_message, "ON", 1, display_mode)
             elif alarmSet == 2:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 3, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("FLOAT", alpha_message, "ON", 3, display_mode)
             elif alarmSet == 3:
                alpha_message = period
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
             elif alarmSet == 4:
                alpha_message = alarm_stat
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
          elif aux_state == 2:
             if auxSet == 1:
                alpha_message = manual_dimLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
             elif auxSet == 2:
                alpha_message = alarmTrack
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif auxSet == 3:
                alpha_message = volLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif auxSet == 4:
                alpha_message = display_override
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode, auto_dimLevel, manual_dimLevel)
+               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
          elif (mode_state == 1 and aux_state == 1):
            alphadisplay.fill(0)
            try:
