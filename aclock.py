@@ -245,18 +245,36 @@ def aux_callback(channel):
       mode_state = 1
       auxSet = 1
       alarmSet = 1
+      # Force display clear
+      alphadisplay.fill(0)
+      try:
+         alphadisplay.show()
+      except Exception as e:
+         logger.error("alphadisplay.show() error: %s", str(e))
    elif aux_state == 2:
       print("aux_callback: Exiting display mode")
       aux_state = 1
       auxSet = 1
       alarmSet = 1
       mode_state = 1
+      # Force display clear
+      alphadisplay.fill(0)
+      try:
+         alphadisplay.show()
+      except Exception as e:
+         logger.error("alphadisplay.show() error: %s", str(e))
    else:
       print("aux_callback: Entering display mode")
       aux_state = 2
       auxSet = 1
       alarmSet = 1
       mode_state = 1
+      # Force display clear
+      alphadisplay.fill(0)
+      try:
+         alphadisplay.show()
+      except Exception as e:
+         logger.error("alphadisplay.show() error: %s", str(e))
    print(f"aux_callback exit: mode_state={mode_state}, aux_state={aux_state}, alarmSet={alarmSet}, auxSet={auxSet}")
    save_settings()
    return
