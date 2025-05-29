@@ -71,7 +71,7 @@ display_override = "ON"
 alarm_hour = 4 # Hour portion of the alarm
 alarm_minute = 0 # Minute portion of the alarm
 alarm_time = dt.strptime("04:00", "%H:%M")
-alarmSet = 1 # Alarm setting mode (1 hour, 2 minute, 3 on or off)
+alarmSet = 1
 displaySet = 1
 alarm_stat = "OFF" # Alarm active or intactive (ON or OFF)
 alarm_ringing = 0
@@ -300,6 +300,7 @@ def switch_event(event):
    global display_settings_state
    global display_mode
    global display_override
+   global last_alpha_message, last_alpha_brightness, last_alpha_type
    if alarm_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
          alarmSet = (alarmSet % 4) + 1
@@ -322,15 +323,17 @@ def switch_event(event):
             elif period == "PM":
                period = "AM"
             print(f"clockwise {period}")
-         # alarm_time = dt.strptime(str(datetime.date.today()+datetime.timedelta(days=1))+" "+str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%Y-%m-%d %I:%M %p")
          alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
-         # print alarm_time.strftime("%I:%M %p")
          if alarmSet == 4:
             if alarm_stat == "ON":
                alarm_stat = "OFF"
             elif alarm_stat == "OFF":
                alarm_stat = "ON"
             print(f"clockwise {alarm_stat}")
+         # Reset display cache to force alphadisplay update
+         last_alpha_message = None
+         last_alpha_brightness = None
+         last_alpha_type = None
       elif event == RotaryEncoder.ANTICLOCKWISE:
          if alarmSet == 1:
             if alarm_hour == 1:
@@ -350,15 +353,17 @@ def switch_event(event):
             elif period == "PM":
                period = "AM"
             print(f"counter clockwise {period}")
-         # alarm_time = dt.strptime(str(datetime.date.today())+" "+str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%Y-%m-%d %I:%M %p")
          alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
-         # print alarm_time.strftime("%I:%M %p")
          if alarmSet == 4:
             if alarm_stat == "ON":
                alarm_stat = "OFF"
             elif alarm_stat == "OFF":
                alarm_stat = "ON"
             print(f"counter clockwise {alarm_stat}")
+         # Reset display cache to force alphadisplay update
+         last_alpha_message = None
+         last_alpha_brightness = None
+         last_alpha_type = None
    if display_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
          displaySet = (displaySet % 4) + 1
@@ -368,12 +373,20 @@ def switch_event(event):
             manual_dimLevel = 0
          else:
             manual_dimLevel += 1
+         # Reset display cache to force alphadisplay update
+         last_alpha_message = None
+         last_alpha_brightness = None
+         last_alpha_type = None
       elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==1:
          display_mode = "MANUAL_DIM"
          if manual_dimLevel == 0:
             manual_dimLevel = 15
          else:
             manual_dimLevel -= 1
+         # Reset display cache to force alphadisplay update
+         last_alpha_message = None
+         last_alpha_brightness = None
+         last_alpha_type = None
       elif event == RotaryEncoder.CLOCKWISE and displaySet==2:
          if alarmTrack == 6:
             alarmTrack = 1
