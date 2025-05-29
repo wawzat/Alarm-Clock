@@ -235,8 +235,8 @@ def display_settings_callback(channel):
    debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
-      debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
-      print("\n".join(debug_lines), end="\n")
+      #debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
+      #print("\n".join(debug_lines), end="\n")
       return
    if display_settings_state == 1:
       debug_lines.append("display_settings_callback: Entering display mode")
