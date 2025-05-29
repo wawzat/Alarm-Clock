@@ -72,7 +72,7 @@ alarm_hour = 4 # Hour portion of the alarm
 alarm_minute = 0 # Minute portion of the alarm
 alarm_time = dt.strptime("04:00", "%H:%M")
 alarmSet = 1 # Alarm setting mode (1 hour, 2 minute, 3 on or off)
-auxSet = 1
+displaySet = 1
 alarm_stat = "OFF" # Alarm active or intactive (ON or OFF)
 alarm_ringing = 0
 sleep_state = "OFF"
@@ -230,9 +230,9 @@ def display_settings_callback(channel):
    global alarm_stat
    global alarm_ringing
    global sleep_state
-   global auxSet
+   global displaySet
    debug_lines = []
-   debug_lines.append(f"display_settings_callback called with channel={channel} aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+   debug_lines.append(f"display_settings_callback called with channel={channel} aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
@@ -247,17 +247,17 @@ def display_settings_callback(channel):
          sleep_state = "OFF"
       # Always reset aux_state and auxSet when entering display settings
       display_settings_state = 2
-      auxSet = 1
+      displaySet = 1
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
-      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n\n")
       return
    elif display_settings_state == 2:
       debug_lines.append("display_settings_callback: Exiting display mode")
       display_settings_state = 1
       clear_alphadisplay()  # Clear display when exiting display mode
-      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={auxSet}")
+      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n\n")
       return
 
@@ -268,7 +268,7 @@ def switch_event(event):
    global alarm_time
    global period
    global alarmSet
-   global auxSet
+   global displaySet
    global alarm_stat
    global alarm_ringing
    global sleep_state
@@ -282,14 +282,7 @@ def switch_event(event):
    global display_override
    if alarm_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
-         if alarmSet == 1:
-            alarmSet = 2
-         elif alarmSet == 2:
-            alarmSet = 3
-         elif alarmSet == 3:
-            alarmSet = 4
-         elif alarmSet == 4:
-            alarmSet = 1
+         alarmSet = (alarmSet % 4) + 1
       elif event == RotaryEncoder.CLOCKWISE:
          if alarmSet == 1:
             if alarm_hour == 12:
@@ -348,41 +341,34 @@ def switch_event(event):
             print(f"counter clockwise {alarm_stat}")
    if display_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
-         if auxSet == 1:
-            auxSet = 2
-         elif auxSet == 2:
-            auxSet = 3
-         elif auxSet == 3:
-            auxSet = 4
-         elif auxSet == 4:
-            auxSet = 1
-      elif event == RotaryEncoder.CLOCKWISE and auxSet==1:
+         displaySet = (displaySet % 4) + 1
+      elif event == RotaryEncoder.CLOCKWISE and displaySet==1:
          display_mode = "MANUAL_DIM"
          if manual_dimLevel == 15:
             manual_dimLevel = 0
          else:
             manual_dimLevel += 1
-      elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==1:
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==1:
          display_mode = "MANUAL_DIM"
          if manual_dimLevel == 0:
             manual_dimLevel = 15
          else:
             manual_dimLevel -= 1
-      elif event == RotaryEncoder.CLOCKWISE and auxSet==2:
+      elif event == RotaryEncoder.CLOCKWISE and displaySet==2:
          if alarmTrack == 6:
             alarmTrack = 1
          else:
             alarmTrack += 1
          if use_audio:
             os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==2:
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==2:
          if alarmTrack == 1:
             alarmTrack = 6
          else:
             alarmTrack -= 1
          if use_audio:
             os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.CLOCKWISE and auxSet==3:
+      elif event == RotaryEncoder.CLOCKWISE and displaySet==3:
          if volLevel == 95:
             volLevel = 0
          else:
@@ -390,7 +376,7 @@ def switch_event(event):
          if use_audio:
             mixer.setvolume(volLevel)
             os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==3:
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==3:
          if volLevel == 0:
             volLevel = 95
          else:
@@ -398,12 +384,12 @@ def switch_event(event):
          if use_audio:
             mixer.setvolume(volLevel)
             os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.CLOCKWISE and auxSet==4:
+      elif event == RotaryEncoder.CLOCKWISE and displaySet==4:
          if display_override == "ON":
             display_override = "OFF"
          elif display_override == "OFF":
             display_override = "ON"
-      elif event == RotaryEncoder.ANTICLOCKWISE and auxSet==4:
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==4:
          if display_override == "ON":
             display_override = "OFF"
          elif display_override == "OFF":
@@ -639,21 +625,21 @@ try:
                alpha_message = alarm_stat
                display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
          elif display_settings_state == 2:
-            if auxSet == 1:
+            if displaySet == 1:
                alpha_message = manual_dimLevel
                display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
-            elif auxSet == 2:
+            elif displaySet == 2:
                alpha_message = alarmTrack
                display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            elif auxSet == 3:
+            elif displaySet == 3:
                alpha_message = volLevel
                display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            elif auxSet == 4:
+            elif displaySet == 4:
                alpha_message = display_override
                display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
          elif (alarm_settings_state == 1 and display_settings_state == 1):
