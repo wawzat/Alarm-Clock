@@ -28,9 +28,9 @@ logger.addHandler(handler)
 # Define rotary encoder and separate pushbutton GPIO input pins (instantiate gpiozero objects here)
 rotary_a = DigitalInputDevice(19, pull_up=True)
 rotary_b = DigitalInputDevice(26, pull_up=True)
-rotary_button = Button(12, pull_up=True)
-alarm_settings_button = Button(13, pull_up=True)
-display_settings_button = Button(21, pull_up=True)
+rotary_button = Button(12, pull_up=True, bounce_time=0.08)
+alarm_settings_button = Button(13, pull_up=True, bounce_time=0.08)
+display_settings_button = Button(21, pull_up=True, bounce_time=0.08)
 
 # Define EDS GPIO input and output pins and setup gpiozero devices
 TRIG = 5
