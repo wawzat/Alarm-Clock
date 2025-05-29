@@ -193,6 +193,7 @@ def alarm_settings_callback(channel):
    global alarm_ringing
    global sleep_state
    global alarmSet
+   global last_num_message, last_num_brightness, last_alpha_message, last_alpha_brightness, last_alpha_type
    debug_lines = []
    debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
    # Only act on BUTTONUP (button release)
@@ -218,6 +219,12 @@ def alarm_settings_callback(channel):
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
+   # Reset display cache to force refresh
+   last_num_message = None
+   last_num_brightness = None
+   last_alpha_message = None
+   last_alpha_brightness = None
+   last_alpha_type = None
    debug_lines.append(f"alarm_settings_callback exit: alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
    print("\n".join(debug_lines), end="\n")
    return
@@ -231,6 +238,7 @@ def display_settings_callback(channel):
    global alarm_ringing
    global sleep_state
    global displaySet
+   global last_num_message, last_num_brightness, last_alpha_message, last_alpha_brightness, last_alpha_type
    debug_lines = []
    debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
@@ -250,6 +258,12 @@ def display_settings_callback(channel):
       displaySet = 1
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
+      # Reset display cache to force refresh
+      last_num_message = None
+      last_num_brightness = None
+      last_alpha_message = None
+      last_alpha_brightness = None
+      last_alpha_type = None
       debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n")
       return
@@ -257,6 +271,12 @@ def display_settings_callback(channel):
       debug_lines.append("display_settings_callback: Exiting display mode")
       display_settings_state = 1
       clear_alphadisplay()  # Clear display when exiting display mode
+      # Reset display cache to force refresh
+      last_num_message = None
+      last_num_brightness = None
+      last_alpha_message = None
+      last_alpha_brightness = None
+      last_alpha_type = None
       debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n")
       return
