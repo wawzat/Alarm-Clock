@@ -194,7 +194,7 @@ def alarm_settings_callback(channel):
    global sleep_state
    global alarmSet
    debug_lines = []
-   debug_lines.append(f"alarm_settings_callback called with channel={channel} mode_state={alarm_settings_state}, aux_state={display_settings_state}, alarmSet={alarmSet}")
+   debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("alarm_settings_callback: Ignored, not BUTTONUP")
@@ -218,7 +218,7 @@ def alarm_settings_callback(channel):
       except Exception as e:
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
-   debug_lines.append(f"alarm_settings_callback exit: mode_state={alarm_settings_state}, aux_state={display_settings_state}, alarmSet={alarmSet}")
+   debug_lines.append(f"alarm_settings_callback exit: alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
    print("\n".join(debug_lines), end="\n\n")
    return
 
@@ -232,7 +232,7 @@ def display_settings_callback(channel):
    global sleep_state
    global displaySet
    debug_lines = []
-   debug_lines.append(f"display_settings_callback called with channel={channel} aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
+   debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
@@ -250,14 +250,14 @@ def display_settings_callback(channel):
       displaySet = 1
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
-      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
+      debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n\n")
       return
    elif display_settings_state == 2:
       debug_lines.append("display_settings_callback: Exiting display mode")
       display_settings_state = 1
       clear_alphadisplay()  # Clear display when exiting display mode
-      debug_lines.append(f"display_settings_callback exit: aux_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
+      debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
       print("\n".join(debug_lines), end="\n\n")
       return
 
