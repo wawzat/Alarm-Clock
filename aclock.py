@@ -198,7 +198,7 @@ def alarm_settings_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("alarm_settings_callback: Ignored, not BUTTONUP")
-      print("\n".join(debug_lines), end="\n")
+      print("\n".join(debug_lines), end="\n\n")
       return
    if alarm_ringing == 1:
       debug_lines.append("alarm_settings_callback: Stopping alarm ring")
@@ -219,7 +219,7 @@ def alarm_settings_callback(channel):
          logger.error("alphadisplay.show() error: %s", str(e))
       time.sleep(.5)
    debug_lines.append(f"alarm_settings_callback exit: alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
-   print("\n".join(debug_lines), end="\n")
+   print("\n".join(debug_lines), end="\n\n")
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
@@ -236,7 +236,7 @@ def display_settings_callback(channel):
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
       debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
-      print("\n".join(debug_lines), end="\n")
+      print("\n".join(debug_lines), end="\n\n")
       return
    if display_settings_state == 1:
       debug_lines.append("display_settings_callback: Entering display mode")
@@ -251,14 +251,14 @@ def display_settings_callback(channel):
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
       debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
-      print("\n".join(debug_lines), end="\n")
+      print("\n".join(debug_lines), end="\n\n")
       return
    elif display_settings_state == 2:
       debug_lines.append("display_settings_callback: Exiting display mode")
       display_settings_state = 1
       clear_alphadisplay()  # Clear display when exiting display mode
       debug_lines.append(f"display_settings_callback exit: _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
-      print("\n".join(debug_lines), end="\n")
+      print("\n".join(debug_lines), end="\n\n")
       return
 
 # This is the event callback routine to handle events for the rotary encoder
