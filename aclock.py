@@ -300,7 +300,7 @@ def switch_event(event):
    global display_override
    if alarm_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
-         alarmSet = (alarmSet % 4) + 1
+         alarmSet = (alarmSet % 6) + 1
       elif event == RotaryEncoder.CLOCKWISE:
          if alarmSet == 1:
             alarm_hour = (alarm_hour % 12) + 1
@@ -315,6 +315,15 @@ def switch_event(event):
          if alarmSet == 4:
             alarm_stat = "OFF" if alarm_stat == "ON" else "ON"
             print(f"clockwise {alarm_stat}")
+         elif alarmSet == 5:
+            alarmTrack = (alarmTrack % 6) + 1
+            if use_audio:
+               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+         elif alarmSet == 6:
+            volLevel = (volLevel + 1) % 96
+            if use_audio:
+               mixer.setvolume(volLevel)
+               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
       elif event == RotaryEncoder.ANTICLOCKWISE:
          if alarmSet == 1:
             alarm_hour = 12 if alarm_hour == 1 else alarm_hour - 1
@@ -329,38 +338,29 @@ def switch_event(event):
          if alarmSet == 4:
             alarm_stat = "OFF" if alarm_stat == "ON" else "ON"
             print(f"counter clockwise {alarm_stat}")
-   if display_settings_state == 2:
+         elif alarmSet == 5:
+            alarmTrack = 6 if alarmTrack == 1 else alarmTrack - 1
+            if use_audio:
+               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+         elif alarmSet == 6:
+            volLevel = 95 if volLevel == 0 else volLevel - 1
+            if use_audio:
+               mixer.setvolume(volLevel)
+               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+   elif display_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
-         displaySet = (displaySet % 4) + 1
+         displaySet = (displaySet % 2) + 1
       elif event == RotaryEncoder.CLOCKWISE:
          if displaySet == 1:
             display_mode = "MANUAL_DIM"
             manual_dimLevel = (manual_dimLevel + 1) % 16
          elif displaySet == 2:
-            alarmTrack = (alarmTrack % 6) + 1
-            if use_audio:
-               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
-         elif displaySet == 3:
-            volLevel = (volLevel + 1) % 96
-            if use_audio:
-               mixer.setvolume(volLevel)
-               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
-         elif displaySet == 4:
             display_override = "OFF" if display_override == "ON" else "ON"
       elif event == RotaryEncoder.ANTICLOCKWISE:
          if displaySet == 1:
             display_mode = "MANUAL_DIM"
             manual_dimLevel = (manual_dimLevel - 1) % 16
          elif displaySet == 2:
-            alarmTrack = 6 if alarmTrack == 1 else alarmTrack - 1
-            if use_audio:
-               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
-         elif displaySet == 3:
-            volLevel = 95 if volLevel == 0 else volLevel - 1
-            if use_audio:
-               mixer.setvolume(volLevel)
-               os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
-         elif displaySet == 4:
             display_override = "OFF" if display_override == "ON" else "ON"
       if alarm_ringing == 0 and (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
          display_mode = "ON"
