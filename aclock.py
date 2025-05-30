@@ -110,7 +110,7 @@ class AlarmClock:
         self.rswitch = RotaryEncoder(
             self.rotary_a, self.rotary_b, self.rotary_button,
             self.alarm_settings_button, self.display_settings_button,
-            self.switch_event, self.alarm_settings_callback, self.display_settings_callback, 2
+            self.rotary_encoder_event, self.alarm_settings_callback, self.display_settings_callback, 2
         )
 
     def get_time(self):
@@ -266,7 +266,7 @@ class AlarmClock:
             print("\n".join(debug_lines), end="\n")
             return
 
-    def switch_event(self, event):
+    def rotary_encoder_event(self, event):
         if self.alarm_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarmSet = (self.alarmSet % 6) + 1
