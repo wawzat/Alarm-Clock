@@ -461,6 +461,7 @@ class AlarmClock:
             self.alarmTrack = settings.get("alarmTrack", self.alarmTrack)
             self.volLevel = settings.get("volLevel", self.volLevel)
             self.manual_dimLevel = settings.get("manual_dimLevel", self.manual_dimLevel)
+            self.auto_dimLevel = settings.get("auto_dimLevel", self.auto_dimLevel)
             self.autoDim = settings.get("autoDim", self.autoDim)
             self.display_mode = settings.get("display_mode", self.display_mode)
             self.display_override = settings.get("display_override", self.display_override)
