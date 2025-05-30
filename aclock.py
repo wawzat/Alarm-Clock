@@ -466,7 +466,23 @@ class AlarmClock:
             self.display_override = settings.get("display_override", self.display_override)
             alarm_time_str = settings.get("alarm_time", None)
             if alarm_time_str:
-                self.alarm_time = dt.strptime(str(self.alarm_hour)+":"+str(self.alarm_minute)+" "+self.period, "%I:%M %p")
+                # Parse alarm_time as HH:MM (24-hour format)
+                self.alarm_time = dt.strptime(alarm_time_str, "%H:%M")
+                # Update alarm_hour, alarm_minute, and period to match alarm_time
+                hour_24 = self.alarm_time.hour
+                self.alarm_minute = self.alarm_time.minute
+                if hour_24 == 0:
+                    self.alarm_hour = 12
+                    self.period = "AM"
+                elif 1 <= hour_24 < 12:
+                    self.alarm_hour = hour_24
+                    self.period = "AM"
+                elif hour_24 == 12:
+                    self.alarm_hour = 12
+                    self.period = "PM"
+                else:
+                    self.alarm_hour = hour_24 - 12
+                    self.period = "PM"
         except FileNotFoundError:
             pass
         except Exception as e:
@@ -613,12 +629,12 @@ class AlarmClock:
                 self.alphadisplay.fill(0)
                 self.alphadisplay.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error (finally): %s", str(e))
+                self.logger.error("alphadisplay.show() error: %s", str(e))
             try:
                 self.numdisplay.fill(0)
                 self.numdisplay.show()
             except Exception as e:
-                self.logger.error("numdisplay.show() error (finally): %s", str(e))
+                self.logger.error("numdisplay.show() error: %s", str(e))
 
 if __name__ == "__main__":
     clock = AlarmClock()
