@@ -592,22 +592,22 @@ try:
             elif alarmSet == 4:
                alpha_message = alarm_stat
                display_alphamessage("STR", alpha_message, display_mode)
-         elif display_settings_state == 2:
-            if displaySet == 1:
-               alpha_message = manual_dimLevel
-               display_alphamessage("FLOAT", alpha_message, display_mode)
-            elif displaySet == 2:
+            elif alarmSet == 5:
                alpha_message = alarmTrack
                display_alphamessage("FLOAT", alpha_message, display_mode)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            elif displaySet == 3:
+            elif alarmSet == 6:
                alpha_message = volLevel
                display_alphamessage("FLOAT", alpha_message, display_mode)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
-            elif displaySet == 4:
+         elif display_settings_state == 2:
+            if displaySet == 1:
+               alpha_message = manual_dimLevel
+               display_alphamessage("FLOAT", alpha_message, display_mode)
+            elif displaySet == 2:
                alpha_message = display_override
                display_alphamessage("STR", alpha_message, display_mode)
          elif (alarm_settings_state == 1 and display_settings_state == 1):
