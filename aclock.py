@@ -28,10 +28,11 @@ class AlarmClock:
         # Set up logger for error logging
         self.logger = logging.getLogger("aclock")
         self.logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler("aclock_error.log")
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        if not self.logger.handlers:
+            handler = logging.FileHandler("aclock_error.log")
+            formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
 
         # Define rotary encoder and separate pushbutton GPIO input pins
         self.rotary_a = DigitalInputDevice(19, pull_up=True)
