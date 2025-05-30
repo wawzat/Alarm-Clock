@@ -71,7 +71,7 @@ display_override = "ON"
 alarm_hour = 4 # Hour portion of the alarm
 alarm_minute = 0 # Minute portion of the alarm
 alarm_time = dt.strptime("04:00", "%H:%M")
-alarmSet = 1 # Alarm setting mode (1 hour, 2 minute, 3 on or off)
+alarmSet = 1
 displaySet = 1
 alarm_stat = "OFF" # Alarm active or intactive (ON or OFF)
 alarm_ringing = 0
@@ -306,112 +306,67 @@ def switch_event(event):
             alarm_hour = (alarm_hour % 12) + 1
             print(f"clockwise {alarm_hour}")
          if alarmSet == 2:
-            if alarm_minute == 60-minute_incr:
-               alarm_minute = 0
-            else:
-               alarm_minute += minute_incr
+            alarm_minute = (alarm_minute + minute_incr) % 60
             print(f"clockwise {alarm_minute}")
          if alarmSet == 3:
-            if period == "AM":
-               period = "PM"
-            elif period == "PM":
-               period = "AM"
+            period = "PM" if period == "AM" else "AM"
             print(f"clockwise {period}")
-         alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
+         alarm_time = dt.strptime(f"{alarm_hour}:{alarm_minute} {period}", "%I:%M %p")
          if alarmSet == 4:
-            if alarm_stat == "ON":
-               alarm_stat = "OFF"
-            elif alarm_stat == "OFF":
-               alarm_stat = "ON"
+            alarm_stat = "OFF" if alarm_stat == "ON" else "ON"
             print(f"clockwise {alarm_stat}")
       elif event == RotaryEncoder.ANTICLOCKWISE:
          if alarmSet == 1:
-            if alarm_hour == 1:
-               alarm_hour = 12
-            else:
-               alarm_hour -= 1
+            alarm_hour = 12 if alarm_hour == 1 else alarm_hour - 1
             print(f"counter clockwise {alarm_hour}")
          if alarmSet == 2:
-            if alarm_minute == 0:
-               alarm_minute = 60-minute_incr
-            else:
-               alarm_minute -= minute_incr
+            alarm_minute = (alarm_minute - minute_incr) % 60
             print(f"counter clockwise {alarm_minute}")
          if alarmSet == 3:
-            if period == "AM":
-               period = "PM"
-            elif period == "PM":
-               period = "AM"
+            period = "PM" if period == "AM" else "AM"
             print(f"counter clockwise {period}")
-         alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
+         alarm_time = dt.strptime(f"{alarm_hour}:{alarm_minute} {period}", "%I:%M %p")
          if alarmSet == 4:
-            if alarm_stat == "ON":
-               alarm_stat = "OFF"
-            elif alarm_stat == "OFF":
-               alarm_stat = "ON"
+            alarm_stat = "OFF" if alarm_stat == "ON" else "ON"
             print(f"counter clockwise {alarm_stat}")
    if display_settings_state == 2:
       if event == RotaryEncoder.BUTTONDOWN:
          displaySet = (displaySet % 4) + 1
-      elif event == RotaryEncoder.CLOCKWISE and displaySet==1:
+      elif event == RotaryEncoder.CLOCKWISE and displaySet == 1:
          display_mode = "MANUAL_DIM"
-         if manual_dimLevel == 15:
-            manual_dimLevel = 0
-         else:
-            manual_dimLevel += 1
-      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==1:
+         manual_dimLevel = (manual_dimLevel + 1) % 16
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet == 1:
          display_mode = "MANUAL_DIM"
-         if manual_dimLevel == 0:
-            manual_dimLevel = 15
-         else:
-            manual_dimLevel -= 1
-      elif event == RotaryEncoder.CLOCKWISE and displaySet==2:
-         if alarmTrack == 6:
-            alarmTrack = 1
-         else:
-            alarmTrack += 1
+         manual_dimLevel = (manual_dimLevel - 1) % 16
+      elif event == RotaryEncoder.CLOCKWISE and displaySet == 2:
+         alarmTrack = (alarmTrack % 6) + 1
          if use_audio:
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==2:
-         if alarmTrack == 1:
-            alarmTrack = 6
-         else:
-            alarmTrack -= 1
+            os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet == 2:
+         alarmTrack = 6 if alarmTrack == 1 else alarmTrack - 1
          if use_audio:
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.CLOCKWISE and displaySet==3:
-         if volLevel == 95:
-            volLevel = 0
-         else:
-            volLevel += 1
+            os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+      elif event == RotaryEncoder.CLOCKWISE and displaySet == 3:
+         volLevel = (volLevel + 1) % 96
          if use_audio:
             mixer.setvolume(volLevel)
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==3:
-         if volLevel == 0:
-            volLevel = 95
-         else:
-            volLevel -= 1
+            os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet == 3:
+         volLevel = 95 if volLevel == 0 else volLevel - 1
          if use_audio:
             mixer.setvolume(volLevel)
-            os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')  # Non-blocking background
-      elif event == RotaryEncoder.CLOCKWISE and displaySet==4:
-         if display_override == "ON":
-            display_override = "OFF"
-         elif display_override == "OFF":
-            display_override = "ON"
-      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet==4:
-         if display_override == "ON":
-            display_override = "OFF"
-         elif display_override == "OFF":
-            display_override = "ON"
+            os.system('mpg123 -q ' + alarm_tracks[alarmTrack] + ' &')
+      elif event == RotaryEncoder.CLOCKWISE and displaySet == 4:
+         display_override = "OFF" if display_override == "ON" else "ON"
+      elif event == RotaryEncoder.ANTICLOCKWISE and displaySet == 4:
+         display_override = "OFF" if display_override == "ON" else "ON"
       if alarm_ringing == 0 and (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
          display_mode = "ON"
          display_override = "ON"
          display_settings_state = 1
       elif alarm_ringing == 1 and sleep_state == "OFF":
          alarm_ringing = 0
-         alarm_time = alarm_time+datetime.timedelta(minutes=1)
+         alarm_time = alarm_time + datetime.timedelta(minutes=1)
          sleep_state = "ON"
       elif alarm_ringing == 0 and sleep_state == "ON":
          alarm_stat = "OFF"
