@@ -194,6 +194,7 @@ def alarm_settings_callback(channel):
    global sleep_state
    global alarmSet
    global last_num_message, last_num_brightness, last_alpha_message, last_alpha_brightness, last_alpha_type
+   global rswitch  # access the rotary encoder instance
    debug_lines = []
    debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={alarm_settings_state}, _display_state={display_settings_state}, alarmSet={alarmSet}")
    # Only act on BUTTONUP (button release)
@@ -210,6 +211,9 @@ def alarm_settings_callback(channel):
       debug_lines.append("alarm_settings_callback: Entering alarm settings mode")
       alarm_settings_state = 2
       alarmSet = 1  # Always reset alarmSet when entering alarm settings
+      # Synchronize rotary encoder state machine to current position
+      if hasattr(rswitch, 'state'):
+         rswitch.state = 0  # R_START is 0 in rotary_class_jsl.py
    elif alarm_settings_state == 2:
       debug_lines.append("alarm_settings_callback: Exiting alarm settings mode")
       alarm_settings_state = 1
@@ -239,12 +243,11 @@ def display_settings_callback(channel):
    global sleep_state
    global displaySet
    global last_num_message, last_num_brightness, last_alpha_message, last_alpha_brightness, last_alpha_type
+   global rswitch  # access the rotary encoder instance
    debug_lines = []
    debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
-      #debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
-      #print("\n".join(debug_lines), end="\n")
       return
    if display_settings_state == 1:
       debug_lines.append("display_settings_callback: Entering display mode")
@@ -258,6 +261,9 @@ def display_settings_callback(channel):
       displaySet = 1
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
+      # Synchronize rotary encoder state machine to current position
+      if hasattr(rswitch, 'state'):
+         rswitch.state = 0  # R_START is 0 in rotary_class_jsl.py
       # Reset display cache to force refresh
       last_num_message = None
       last_num_brightness = None
