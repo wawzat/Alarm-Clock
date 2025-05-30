@@ -212,8 +212,8 @@ def alarm_settings_callback(channel):
       alarm_settings_state = 2
       alarmSet = 1  # Always reset alarmSet when entering alarm settings
       # Synchronize rotary encoder state machine to current position
-      if hasattr(rswitch, 'state'):
-         rswitch.state = 0  # R_START is 0 in rotary_class_jsl.py
+      if hasattr(rswitch, 'sync_to_pins'):
+         rswitch.sync_to_pins()
    elif alarm_settings_state == 2:
       debug_lines.append("alarm_settings_callback: Exiting alarm settings mode")
       alarm_settings_state = 1
@@ -262,8 +262,8 @@ def display_settings_callback(channel):
       clear_alphadisplay()  # Clear display when entering display mode
       save_settings()
       # Synchronize rotary encoder state machine to current position
-      if hasattr(rswitch, 'state'):
-         rswitch.state = 0  # R_START is 0 in rotary_class_jsl.py
+      if hasattr(rswitch, 'sync_to_pins'):
+         rswitch.sync_to_pins()
       # Reset display cache to force refresh
       last_num_message = None
       last_num_brightness = None
