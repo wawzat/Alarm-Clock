@@ -305,10 +305,10 @@ def switch_event(event):
          if alarmSet == 1:
             alarm_hour = (alarm_hour % 12) + 1
             print(f"clockwise {alarm_hour}")
-         if alarmSet == 2:
+         elif alarmSet == 2:
             alarm_minute = (alarm_minute + minute_incr) % 60
             print(f"clockwise {alarm_minute}")
-         if alarmSet == 3:
+         elif alarmSet == 3:
             period = "PM" if period == "AM" else "AM"
             print(f"clockwise {period}")
          alarm_time = dt.strptime(f"{alarm_hour}:{alarm_minute} {period}", "%I:%M %p")
@@ -319,10 +319,10 @@ def switch_event(event):
          if alarmSet == 1:
             alarm_hour = 12 if alarm_hour == 1 else alarm_hour - 1
             print(f"counter clockwise {alarm_hour}")
-         if alarmSet == 2:
+         elif alarmSet == 2:
             alarm_minute = (alarm_minute - minute_incr) % 60
             print(f"counter clockwise {alarm_minute}")
-         if alarmSet == 3:
+         elif alarmSet == 3:
             period = "PM" if period == "AM" else "AM"
             print(f"counter clockwise {period}")
          alarm_time = dt.strptime(f"{alarm_hour}:{alarm_minute} {period}", "%I:%M %p")
