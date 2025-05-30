@@ -303,10 +303,7 @@ def switch_event(event):
          alarmSet = (alarmSet % 4) + 1
       elif event == RotaryEncoder.CLOCKWISE:
          if alarmSet == 1:
-            if alarm_hour == 12:
-               alarm_hour = 1
-            else:
-               alarm_hour += 1
+            alarm_hour = (alarm_hour % 12) + 1
             print(f"clockwise {alarm_hour}")
          if alarmSet == 2:
             if alarm_minute == 60-minute_incr:
