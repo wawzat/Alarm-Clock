@@ -203,22 +203,3 @@ class RotaryEncoder:
     def getSwitchState(self, switch):
         # switch should be a Button or DigitalInputDevice instance
         return switch.value
-
-    def sync_to_pins(self):
-        """
-        Synchronize the state machine to the current physical state of the encoder pins.
-        This prevents the first detent from being ignored after mode changes.
-        """
-        a = self.pinA.value if hasattr(self.pinA, 'value') else self.pinA.is_active
-        b = self.pinB.value if hasattr(self.pinB, 'value') else self.pinB.is_active
-        pinstate = (a << 1) | b
-        # For FULL_STEP mode, set state to the correct state for the current pin state
-        # 00: R_START (0), 01: R_CW_BEGIN (2), 10: R_CCW_BEGIN (4), 11: R_CW_FINAL (1)
-        if pinstate == 0:
-            self.state = R_START
-        elif pinstate == 1:
-            self.state = R_CW_BEGIN
-        elif pinstate == 2:
-            self.state = R_CCW_BEGIN
-        elif pinstate == 3:
-            self.state = R_CW_FINAL
