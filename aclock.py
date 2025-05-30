@@ -185,7 +185,7 @@ def clear_alphadisplay():
         logger.error("alphadisplay.show() error: %s", str(e))
 
 # Callback function used by GPIO interrupt, runs in separate thread
-# Used for mode pushbutton
+# Used for alarm setings pushbutton
 def alarm_settings_callback(channel):
    global alarm_settings_state
    global display_settings_state
@@ -230,7 +230,7 @@ def alarm_settings_callback(channel):
    return
 
 # Callback function used by GPIO interrupt, runs in separate thread
-# Used for aux pushbutton
+# Used for display settings pushbutton
 def display_settings_callback(channel):
    global alarm_settings_state
    global display_settings_state
@@ -243,8 +243,6 @@ def display_settings_callback(channel):
    debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={display_settings_state}, alarmSet={alarmSet}, auxSet={displaySet}")
    # Only act on BUTTONUP (button release)
    if channel != RotaryEncoder.BUTTONUP:
-      #debug_lines.append("display_settings_callback: Ignored, not BUTTONUP")
-      #print("\n".join(debug_lines), end="\n")
       return
    if display_settings_state == 1:
       debug_lines.append("display_settings_callback: Entering display mode")
@@ -253,7 +251,7 @@ def display_settings_callback(channel):
          alarm_ringing = 0
          alarm_stat = "OFF"
          sleep_state = "OFF"
-      # Always reset aux_state and auxSet when entering display settings
+      # Always reset display_settings_state and displaySet when entering display settings
       display_settings_state = 2
       displaySet = 1
       clear_alphadisplay()  # Clear display when entering display mode
@@ -322,9 +320,7 @@ def switch_event(event):
             elif period == "PM":
                period = "AM"
             print(f"clockwise {period}")
-         # alarm_time = dt.strptime(str(datetime.date.today()+datetime.timedelta(days=1))+" "+str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%Y-%m-%d %I:%M %p")
          alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
-         # print alarm_time.strftime("%I:%M %p")
          if alarmSet == 4:
             if alarm_stat == "ON":
                alarm_stat = "OFF"
@@ -350,9 +346,7 @@ def switch_event(event):
             elif period == "PM":
                period = "AM"
             print(f"counter clockwise {period}")
-         # alarm_time = dt.strptime(str(datetime.date.today())+" "+str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%Y-%m-%d %I:%M %p")
          alarm_time = dt.strptime(str(alarm_hour)+":"+str(alarm_minute)+" "+period, "%I:%M %p")
-         # print alarm_time.strftime("%I:%M %p")
          if alarmSet == 4:
             if alarm_stat == "ON":
                alarm_stat = "OFF"
@@ -593,7 +587,7 @@ try:
                now = get_time()
                num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
                display_nummessage(num_message, display_mode)
-               time.sleep(.03) # note will be 5 sec delay inluding .02 sec in display_nummessage
+               time.sleep(.03) # note will be .05 sec delay inluding .02 sec in display_nummessage
                loop_count += 1
             display_mode = "AUTO_OFF"
             display_override = "OFF"
@@ -605,7 +599,7 @@ try:
                now = get_time()
                num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
                display_nummessage(num_message, display_mode)
-               time.sleep(.03) # note will be 5 sec delay inluding .02 sec in display_nummessage
+               time.sleep(.03) # note will be .05 sec delay inluding .02 sec in display_nummessage
                loop_count += 1
             display_mode = "MANUAL_OFF"
             display_override = "OFF"
