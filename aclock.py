@@ -21,7 +21,7 @@ class AlarmClock:
     SETTINGS_FILE = "settings.json"
     PERSISTED_SETTINGS = [
         "alarm_hour", "alarm_minute", "period", "alarm_stat", "alarmTrack", "volLevel",
-        "manual_dimLevel", "autoDim", "display_mode", "display_override"
+        "manual_dimLevel", "auto_dimLevel", "autoDim", "display_mode", "display_override"
     ]
 
     def __init__(self):
