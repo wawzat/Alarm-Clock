@@ -3,7 +3,7 @@
 # Issues and todo: alarm pre-selects, auto alarm repeat, issues with dimLevel 0 line 402 auto time setting conflict with manual off
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
-# 20250526
+# 20250530
 import os
 import time
 import datetime
@@ -466,7 +466,7 @@ def debug_brightness(autoDim, alarm_stat, display_mode):
             display_mode = "MANUAL_DIM"
    return display_mode
 
-def display_alphamessage(message_type, alpha_message, decimal_state, decimal_place, display_mode):
+def display_alphamessage(message_type, alpha_message, display_mode):
     global last_alpha_message, last_alpha_brightness, last_alpha_type
     if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
         alphadisplay.fill(0)
@@ -634,34 +634,34 @@ try:
          if alarm_settings_state == 2:
             if alarmSet == 1:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 1, display_mode)
+               display_alphamessage("FLOAT", alpha_message, display_mode)
             elif alarmSet == 2:
                alpha_message = alarm_hour*100 + alarm_minute
-               display_alphamessage("FLOAT", alpha_message, "ON", 3, display_mode)
+               display_alphamessage("FLOAT", alpha_message, display_mode)
             elif alarmSet == 3:
                alpha_message = period
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, display_mode)
             elif alarmSet == 4:
                alpha_message = alarm_stat
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, display_mode)
          elif display_settings_state == 2:
             if displaySet == 1:
                alpha_message = manual_dimLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, display_mode)
             elif displaySet == 2:
                alpha_message = alarmTrack
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, display_mode)
                if use_audio:
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif displaySet == 3:
                alpha_message = volLevel
-               display_alphamessage("FLOAT", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("FLOAT", alpha_message, display_mode)
                if use_audio:
                   mixer.setvolume(volLevel)
                   os.system('mpg123 -q '+ alarm_tracks[alarmTrack] +' &')
             elif displaySet == 4:
                alpha_message = display_override
-               display_alphamessage("STR", alpha_message, "OFF", 0, display_mode)
+               display_alphamessage("STR", alpha_message, display_mode)
          elif (alarm_settings_state == 1 and display_settings_state == 1):
            alphadisplay.fill(0)
            try:
