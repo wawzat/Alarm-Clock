@@ -156,7 +156,7 @@ class AlarmClock:
                     if loopCount % 10 == 0 and timeDecrease <= 2.25:
                         timeDecrease += .25
                     self.mixer.setvolume(self.volLevel+volIncrease)
-                    os.system('mpg123 -q '+ self.alarm_tracks[self.alarmTrack] +' &')
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
                 print(f"alarm ring, now: {now.time()} alarm: {self.alarm_time.time()} Count: {loopCount} Vol: {self.volLevel+volIncrease} Ring Time: {3-timeDecrease} alarm_ringing: {self.alarm_ringing} sleep_state: {self.sleep_state}")
                 # Check EDS for snooze every 0.1s for up to 2 seconds (or less as timeDecrease increases)
                 snooze_window = max(0.5, 2-timeDecrease)  # never less than 0.5s
@@ -309,12 +309,12 @@ class AlarmClock:
                 elif self.alarmSet == 5:
                     self.alarmTrack = (self.alarmTrack % 6) + 1
                     if self.use_audio:
-                        os.system('mpg123 -q ' + self.alarm_tracks[self.alarmTrack] + ' &')
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
                 elif self.alarmSet == 6:
                     self.volLevel = (self.volLevel + 1) % 96
                     if self.use_audio:
                         self.mixer.setvolume(self.volLevel)
-                        os.system('mpg123 -q ' + self.alarm_tracks[self.alarmTrack] + ' &')
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
             elif event == RotaryEncoder.ANTICLOCKWISE:
                 if self.alarmSet == 1:
                     self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
@@ -332,12 +332,12 @@ class AlarmClock:
                 elif self.alarmSet == 5:
                     self.alarmTrack = 6 if self.alarmTrack == 1 else self.alarmTrack - 1
                     if self.use_audio:
-                        os.system('mpg123 -q ' + self.alarm_tracks[self.alarmTrack] + ' &')
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
                 elif self.alarmSet == 6:
                     self.volLevel = 95 if self.volLevel == 0 else self.volLevel - 1
                     if self.use_audio:
                         self.mixer.setvolume(self.volLevel)
-                        os.system('mpg123 -q ' + self.alarm_tracks[self.alarmTrack] + ' &')
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
         elif self.display_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
                 self.displaySet = (self.displaySet % 2) + 1
@@ -581,13 +581,13 @@ class AlarmClock:
                 alpha_message = self.alarmTrack
                 self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
                 if self.use_audio:
-                    os.system('mpg123 -q '+ self.alarm_tracks[self.alarmTrack] +' &')
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
             elif self.alarmSet == 6:
                 alpha_message = self.volLevel
                 self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
                 if self.use_audio:
                     self.mixer.setvolume(self.volLevel)
-                    os.system('mpg123 -q '+ self.alarm_tracks[self.alarmTrack] +' &')
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
         elif self.display_settings_state == 2:
             if self.displaySet == 1:
                 alpha_message = self.manual_dimLevel
