@@ -124,6 +124,9 @@ class AlarmClock:
         if now.strftime("%p") == self.period and now.time() >= self.alarm_time.time() and self.alarm_stat == "ON":
             self.alarm_ringing = 1
             self.sleep_state = "OFF"
+            snooze_triggered = False
+            snooze_cooldown = 10  # seconds to wait before alarm can re-trigger after snooze
+            snooze_time = None
             while self.alarm_ringing == 1 and self.alarm_stat == "ON":
                 loopCount += 1
                 delay_loop = 0
@@ -146,17 +149,27 @@ class AlarmClock:
                     self.mixer.setvolume(self.volLevel+volIncrease)
                     os.system('mpg123 -q '+ self.alarm_tracks[self.alarmTrack] +' &')
                 print(f"alarm ring, now: {now.time()} alarm: {self.alarm_time.time()} Count: {loopCount} Vol: {self.volLevel+volIncrease} Ring Time: {3-timeDecrease} alarm_ringing: {self.alarm_ringing} sleep_state: {self.sleep_state}")
-                time.sleep(1)
-                while delay_loop <= (2-timeDecrease):
+                # Check EDS for snooze every 0.1s for up to 2 seconds (or less as timeDecrease increases)
+                snooze_window = max(0.5, 2-timeDecrease)  # never less than 0.5s
+                start_time = time.time()
+                while time.time() - start_time < snooze_window:
                     self.distance = self.eds()
-                    time.sleep(.1)
-                    delay_loop += .1
+                    print(f"EDS distance: {self.distance}")
                     if 0 < self.distance < 4:
-                        print("Should be sleep state now")
-                        delay_loop = 3
+                        print("Snooze triggered by hand wave!")
                         self.alarm_ringing = 0
-                        self.alarm_time = self.alarm_time+datetime.timedelta(minutes=1)
+                        self.alarm_time = self.alarm_time + datetime.timedelta(minutes=5)  # 5 min snooze
                         self.sleep_state = "ON"
+                        snooze_triggered = True
+                        snooze_time = time.time()
+                        break
+                    time.sleep(0.1)
+                if snooze_triggered:
+                    # Wait for cooldown before allowing alarm to re-trigger
+                    print(f"Snooze cooldown for {snooze_cooldown} seconds.")
+                    while time.time() - snooze_time < snooze_cooldown:
+                        time.sleep(0.2)
+                    break
         elif now >= self.alarm_time and self.alarm_stat == "OFF":
             print("alarm mode off")
         return
