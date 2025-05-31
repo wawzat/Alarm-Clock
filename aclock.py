@@ -3,8 +3,7 @@
 # Issues and todo: alarm pre-selects, auto alarm repeat, issues with dimLevel 0 line 402 auto time setting conflict with manual off
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
-# 20250530
-# All camelCase variable and method names have been converted to snake_case throughout the file, except for library-required names.
+# 20250531
 import os
 import time
 import datetime
@@ -186,7 +185,6 @@ class AlarmClock:
             last_colon = None
             while self.alarm_ringing == 1 and self.alarm_stat == "ON":
                 loop_count += 1
-                delay_loop = 0
                 self.alpha_display.fill(0)
                 self.alpha_display.print("RING")
                 self.alpha_display.show()
