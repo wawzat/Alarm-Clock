@@ -10,14 +10,15 @@ Schematic
 2. Choose alarm sound
 3. Alarm starts quietly and gradually gets louder
 4. Wave to snooze
+5. Wave to wake the display when it is off
  
 
 ## Operation  
 The alarm clock is controlled using a rotary encoder (with push button) and two additional pushbuttons: one for Alarm Settings and one for Display Settings. The LED displays show the current time, alarm settings, and other status information.
 
 ### Normal Time Display
-- **Default Mode:** The numeric display shows the current time in HHMM format. The colon blinks every second.
-- **Brightness:** The display brightness is automatically or manually controlled based on the configured mode.
+- **Default Mode:** The numeric display shows the current time in HH:MM format. The colon blinks every second.
+- **Brightness:** The display brightness is automatically or manually controlled based on the selected mode.
 
 ### Setting the Alarm
 1. **Enter Alarm Setting Mode:**
@@ -35,17 +36,17 @@ The alarm clock is controlled using a rotary encoder (with push button) and two 
 5. **Turn Alarm ON/OFF:**
    - Rotate the encoder to toggle the alarm status.
    - Press the encoder button to finish and return to normal display.
+6. - **Select Alarm Track:** Press the encoder to cycle to alarm track selection, then rotate to choose a track.
+7. - **Adjust Volume:** Press again to cycle to volume adjustment, then rotate to set volume.
 
 ### Display Settings
 - **Enter Display Settings:** Press the **Display Settings** button.
 - **Adjust Brightness:** In Display Settings mode, rotate the encoder to change manual brightness.
-- **Select Alarm Track:** Press the encoder to cycle to alarm track selection, then rotate to choose a track.
-- **Adjust Volume:** Press again to cycle to volume adjustment, then rotate to set volume.
-- **Display Override:** Press again to toggle display override ON/OFF.
+- **Display Override:** Press again to select display override ON/OFF. Setting to On will cause the display to not turn off or dim automatically. 
 
 ### Alarm Operation
 - **Alarm Ringing:** When the alarm time is reached and the alarm is ON, the display will show "RING" and the alarm will sound (if audio is enabled).
-- **Snooze:** Wave your hand in front of the EDS sensor to snooze the alarm for 1 minute.
+- **Snooze:** Wave your hand in front of the EDS sensor to snooze the alarm for 5 minute.
 - **Turn Off Alarm:** Press the alarm or rotary encoder button to turn off the alarm.
 
 ### Display Modes
