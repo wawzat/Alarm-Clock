@@ -1,0 +1,1 @@
+After completing an action that results in modifying a file, provide a git commit message that describes the change made. The message should be concise yet descriptive enough to understand the modification without needing to look at the code.  
