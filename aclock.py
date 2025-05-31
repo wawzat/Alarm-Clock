@@ -178,6 +178,8 @@ class AlarmClock:
                     while time.time() - snooze_time < snooze_cooldown:
                         time.sleep(0.2)
                     break
+                # Add a small delay to allow colon to blink
+                time.sleep(0.05)
         elif now >= self.alarm_time and self.alarm_stat == "OFF":
             print("alarm mode off")
         return
