@@ -127,9 +127,8 @@ class AlarmClock:
             snooze_triggered = False
             snooze_cooldown = 10  # seconds to wait before alarm can re-trigger after snooze
             snooze_time = None
-            # --- Flicker reduction: cache last num display value and colon ---
+            # --- Flicker reduction: cache last num display value ---
             last_num_message = None
-            last_colon = None
             while self.alarm_ringing == 1 and self.alarm_stat == "ON":
                 loopCount += 1
                 delay_loop = 0
@@ -139,17 +138,17 @@ class AlarmClock:
                 now = self.get_time()
                 num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
                 colon_state = now.second % 2
-                # Only update numeric display if value or colon changed
-                if (num_message != last_num_message) or (colon_state != last_colon):
+                # Only update digits if value changed
+                if num_message != last_num_message:
                     self.numdisplay.fill(0)
                     self.numdisplay.print(num_message)
-                    self.numdisplay.colon = colon_state
-                    try:
-                        self.numdisplay.show()
-                    except Exception as e:
-                        self.logger.error("numdisplay.show() error: %s", str(e))
                     last_num_message = num_message
-                    last_colon = colon_state
+                # Always update colon and show for blink effect
+                self.numdisplay.colon = colon_state
+                try:
+                    self.numdisplay.show()
+                except Exception as e:
+                    self.logger.error("numdisplay.show() error: %s", str(e))
                 if self.use_audio:
                     if loopCount % 10 == 0 and (self.volLevel + volIncrease) <= 90:
                         volIncrease += 5
