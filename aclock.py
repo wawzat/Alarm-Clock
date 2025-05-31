@@ -97,6 +97,32 @@ class AlarmClock:
         self.loop_count = 0
         self.debug = "NO"
 
+        # Rotary encoder action dictionaries
+        self.clockwise_alarm_actions = {
+            1: self.inc_alarm_hour,
+            2: self.inc_alarm_minute,
+            3: self.toggle_period,
+            4: self.toggle_alarm_stat,
+            5: self.inc_alarm_track,
+            6: self.inc_vol_level
+        }
+        self.anticlockwise_alarm_actions = {
+            1: self.dec_alarm_hour,
+            2: self.dec_alarm_minute,
+            3: self.dec_period,
+            4: self.dec_alarm_stat,
+            5: self.dec_alarm_track,
+            6: self.dec_vol_level
+        }
+        self.clockwise_display_actions = {
+            1: self.inc_manual_dim_level,
+            2: self.toggle_display_override
+        }
+        self.anticlockwise_display_actions = {
+            1: self.dec_manual_dim_level,
+            2: self.toggle_display_override
+        }
+
         # Display cache
         self.last_num_message = None
         self.last_num_brightness = None
@@ -372,57 +398,33 @@ class AlarmClock:
 
     def rotary_encoder_event(self, event):
         if self.alarm_settings_state == 2:
-            clockwise_alarm_actions = {
-                1: self.inc_alarm_hour,
-                2: self.inc_alarm_minute,
-                3: self.toggle_period,
-                4: self.toggle_alarm_stat,
-                5: self.inc_alarm_track,
-                6: self.inc_vol_level
-            }
-            anticlockwise_alarm_actions = {
-                1: self.dec_alarm_hour,
-                2: self.dec_alarm_minute,
-                3: self.dec_period,
-                4: self.dec_alarm_stat,
-                5: self.dec_alarm_track,
-                6: self.dec_vol_level
-            }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarm_set = (self.alarm_set % 6) + 1
             elif event == RotaryEncoder.CLOCKWISE:
                 update_time = False
-                if self.alarm_set in clockwise_alarm_actions:
-                    result = clockwise_alarm_actions[self.alarm_set]()
+                if self.alarm_set in self.clockwise_alarm_actions:
+                    result = self.clockwise_alarm_actions[self.alarm_set]()
                     if result:
                         update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
             elif event == RotaryEncoder.ANTICLOCKWISE:
                 update_time = False
-                if self.alarm_set in anticlockwise_alarm_actions:
-                    result = anticlockwise_alarm_actions[self.alarm_set]()
+                if self.alarm_set in self.anticlockwise_alarm_actions:
+                    result = self.anticlockwise_alarm_actions[self.alarm_set]()
                     if result:
                         update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
         elif self.display_settings_state == 2:
-            clockwise_display_actions = {
-                1: self.inc_manual_dim_level,
-                2: self.toggle_display_override
-            }
-            anticlockwise_display_actions = {
-                1: self.dec_manual_dim_level,
-                2: self.toggle_display_override
-            }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.display_set = (self.display_set % 2) + 1
             elif event == RotaryEncoder.CLOCKWISE:
-                action = clockwise_display_actions.get(self.display_set)
+                action = self.clockwise_display_actions.get(self.display_set)
                 if action:
                     action()
             elif event == RotaryEncoder.ANTICLOCKWISE:
-                action = anticlockwise_display_actions.get(self.display_set)
+                action = self.anticlockwise_display_actions.get(self.display_set)
                 if action:
                     action()
             if self.alarm_ringing == 0 and (self.display_mode == "MANUAL_OFF" or self.display_mode == "AUTO_OFF"):
