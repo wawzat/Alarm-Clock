@@ -19,6 +19,17 @@ import busio
 import json
 
 class AlarmClock:
+    """
+    AlarmClock provides an alarm clock with LED display, rotary encoder controls, and optional audio features.
+
+    Features:
+        - Alarm time and status management
+        - LED display brightness and override controls
+        - Rotary encoder and button input handling
+        - Persistent settings storage and loading
+        - Optional audio playback for alarm
+        - EDS (ultrasonic sensor) for snooze and display wake
+    """
     SETTINGS_FILE = "settings.json"
     PERSISTED_SETTINGS = [
         "alarm_hour", "alarm_minute", "period", "alarm_stat", "alarm_track", "vol_level",
@@ -26,6 +37,9 @@ class AlarmClock:
     ]
 
     def __init__(self):
+        """
+        Initialize the AlarmClock instance, set up hardware interfaces, state variables, and load persisted settings.
+        """
         # Set up logger for error logging
         self.logger = logging.getLogger("aclock")
         self.logger.setLevel(logging.ERROR)
@@ -141,9 +155,22 @@ class AlarmClock:
         )
 
     def get_time(self):
+        """
+        Return the current datetime.
+
+        Returns:
+            datetime: The current date and time.
+        """
         return dt.now()
 
     def check_alarm(self, now):
+        """
+        Check if the alarm should ring based on the current time and alarm settings.
+        Handles alarm ringing, snooze logic, and audio playback if enabled.
+
+        Args:
+            now (datetime): The current datetime to check against the alarm time.
+        """
         loop_count = 0
         vol_increase = 0
         time_decrease = 0
@@ -211,6 +238,12 @@ class AlarmClock:
         return
 
     def eds(self):
+        """
+        Measure distance using the EDS (ultrasonic sensor).
+
+        Returns:
+            float: The measured distance in centimeters, or -1 if timeout occurs.
+        """
         self.trig.off()
         time.sleep(0.000002)
         self.trig.on()
@@ -232,6 +265,9 @@ class AlarmClock:
         return distance
 
     def clear_alpha_display(self):
+        """
+        Clear the alphanumeric display and handle exceptions.
+        """
         self.alpha_display.fill(0)
         try:
             self.alpha_display.show()
@@ -239,6 +275,12 @@ class AlarmClock:
             self.logger.error("alpha_display.show() error: %s", str(e))
 
     def alarm_settings_callback(self, channel):
+        """
+        Handle alarm settings button events, including entering/exiting alarm settings mode and stopping the alarm.
+
+        Args:
+            channel: The event channel (should be BUTTONUP for action).
+        """
         debug_lines = []
         debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={self.alarm_settings_state}, display_state={self.display_settings_state}, alarm_set={self.alarm_set}")
         # Only act on BUTTONUP (button release)
@@ -275,6 +317,12 @@ class AlarmClock:
         return
 
     def display_settings_callback(self, channel):
+        """
+        Handle display settings button events, including entering/exiting display settings mode.
+
+        Args:
+            channel: The event channel (should be BUTTONUP for action).
+        """
         debug_lines = []
         debug_lines.append(f"display_settings_callback called with channel={channel} display_state={self.display_settings_state}, alarm_set={self.alarm_set}, aux_set={self.display_set}")
         # Only act on BUTTONUP (button release)
@@ -315,34 +363,52 @@ class AlarmClock:
             print("\n".join(debug_lines), end="\n")
             return
 
-    # --- Rotary encoder action methods (moved from rotary_encoder_event) ---
+    # --- Rotary encoder action methods ---
     def inc_alarm_hour(self):
+        """
+        Increment the alarm hour, wrapping around at 12.
+        """
         self.alarm_hour = (self.alarm_hour % 12) + 1
         print(f"clockwise {self.alarm_hour}")
         return True
 
     def inc_alarm_minute(self):
+        """
+        Increment the alarm minute, wrapping around at 60.
+        """
         self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
         print(f"clockwise {self.alarm_minute}")
         return True
 
     def toggle_period(self):
+        """
+        Toggle the alarm period between AM and PM.
+        """
         self.period = "PM" if self.period == "AM" else "AM"
         print(f"clockwise {self.period}")
         return True
 
     def toggle_alarm_stat(self):
+        """
+        Toggle the alarm status between ON and OFF.
+        """
         self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
         print(f"clockwise {self.alarm_stat}")
         return True
 
     def inc_alarm_track(self):
+        """
+        Increment the alarm track, wrapping around at 6. Optionally play the track if audio is enabled.
+        """
         self.alarm_track = (self.alarm_track % 6) + 1
         if self.use_audio:
             os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
         return False
 
     def inc_vol_level(self):
+        """
+        Increment the volume level, wrapping around at 96. Optionally set volume if audio is enabled.
+        """
         self.vol_level = (self.vol_level + 1) % 96
         if self.use_audio:
             self.mixer.setvolume(self.vol_level)
@@ -350,32 +416,50 @@ class AlarmClock:
         return False
 
     def dec_alarm_hour(self):
+        """
+        Decrement the alarm hour, wrapping around at 1.
+        """
         self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
         print(f"counter clockwise {self.alarm_hour}")
         return True
 
     def dec_alarm_minute(self):
+        """
+        Decrement the alarm minute, wrapping around at 0.
+        """
         self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
         print(f"counter clockwise {self.alarm_minute}")
         return True
 
     def dec_period(self):
+        """
+        Toggle the alarm period between AM and PM (counterclockwise action).
+        """
         self.period = "PM" if self.period == "AM" else "AM"
         print(f"counter clockwise {self.period}")
         return True
 
     def dec_alarm_stat(self):
+        """
+        Toggle the alarm status between ON and OFF (counterclockwise action).
+        """
         self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
         print(f"counter clockwise {self.alarm_stat}")
         return True
 
     def dec_alarm_track(self):
+        """
+        Decrement the alarm track, wrapping around at 1. Optionally play the track if audio is enabled.
+        """
         self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
         if self.use_audio:
             os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
         return False
 
     def dec_vol_level(self):
+        """
+        Decrement the volume level, wrapping around at 0. Optionally set volume if audio is enabled.
+        """
         self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
         if self.use_audio:
             self.mixer.setvolume(self.vol_level)
@@ -383,20 +467,35 @@ class AlarmClock:
         return False
 
     def inc_manual_dim_level(self):
+        """
+        Increment the manual display dim level, wrapping around at 15.
+        """
         self.display_mode = "MANUAL_DIM"
         self.manual_dim_level = (self.manual_dim_level + 1) % 16
         return False
 
     def dec_manual_dim_level(self):
+        """
+        Decrement the manual display dim level, wrapping around at 0.
+        """
         self.display_mode = "MANUAL_DIM"
         self.manual_dim_level = (self.manual_dim_level - 1) % 16
         return False
 
     def toggle_display_override(self):
+        """
+        Toggle the display override between ON and OFF.
+        """
         self.display_override = "OFF" if self.display_override == "ON" else "ON"
         return False
 
     def rotary_encoder_event(self, event):
+        """
+        Handle rotary encoder events for alarm and display settings.
+
+        Args:
+            event: The rotary encoder event type.
+        """
         if self.alarm_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarm_set = (self.alarm_set % 6) + 1
@@ -442,6 +541,17 @@ class AlarmClock:
         return
 
     def brightness(self, auto_dim, alarm_stat, display_mode, now):
+        """
+        Determine the display mode based on auto dim, alarm status, and current time.
+
+        Args:
+            auto_dim (str): Whether auto dim is enabled ("ON"/"OFF").
+            alarm_stat (str): Alarm status ("ON"/"OFF").
+            display_mode (str): Current display mode.
+            now (datetime): The current datetime.
+        Returns:
+            str: The updated display mode.
+        """
         if auto_dim == "ON":
             if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("22:00", "%H:%M").time():
                 display_mode = "MANUAL_DIM"
@@ -460,6 +570,17 @@ class AlarmClock:
         return display_mode
 
     def debug_brightness(self, auto_dim, alarm_stat, display_mode, now):
+        """
+        Debug version of brightness() for testing display mode logic with different time ranges.
+
+        Args:
+            auto_dim (str): Whether auto dim is enabled ("ON"/"OFF").
+            alarm_stat (str): Alarm status ("ON"/"OFF").
+            display_mode (str): Current display mode.
+            now (datetime): The current datetime.
+        Returns:
+            str: The updated display mode.
+        """
         if auto_dim == "ON":
             if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("12:00", "%H:%M").time():
                 display_mode = "MANUAL_DIM"
@@ -478,6 +599,14 @@ class AlarmClock:
         return display_mode
 
     def display_alpha_message(self, message_type, alpha_message, display_mode):
+        """
+        Display a message on the alphanumeric display, handling brightness and display mode.
+
+        Args:
+            message_type (str): Type of message ("FLOAT" or "STR").
+            alpha_message: The message to display.
+            display_mode (str): The current display mode.
+        """
         if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
             self.alpha_display.fill(0)
             try:
@@ -514,6 +643,14 @@ class AlarmClock:
         return
 
     def display_num_message(self, num_message, display_mode, now):
+        """
+        Display a message on the numeric display, handling brightness and display mode.
+
+        Args:
+            num_message: The message to display (numeric).
+            display_mode (str): The current display mode.
+            now (datetime): The current datetime (for colon blink).
+        """
         if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
             self.num_display.fill(0)
             try:
@@ -537,6 +674,9 @@ class AlarmClock:
         return
 
     def save_settings(self):
+        """
+        Save the current settings to a JSON file for persistence.
+        """
         settings = {k: getattr(self, k) for k in self.PERSISTED_SETTINGS}
         # Save alarm_time as string
         settings["alarm_time"] = self.alarm_time.strftime("%H:%M")
@@ -547,6 +687,9 @@ class AlarmClock:
             self.logger.error("Failed to save settings: %s", str(e))
 
     def load_settings(self):
+        """
+        Load settings from a JSON file, updating alarm and display state variables.
+        """
         try:
             with open(self.SETTINGS_FILE, "r") as f:
                 settings = json.load(f)
@@ -586,6 +729,12 @@ class AlarmClock:
             self.logger.error("Failed to load settings: %s", str(e))
 
     def handle_eds_wake(self, now):
+        """
+        Wake the display if the EDS (ultrasonic sensor) detects a hand wave while display is off.
+
+        Args:
+            now (datetime): The current datetime.
+        """
         # Wake the display on EDS
         if self.display_override == "OFF":
             if self.display_mode == "AUTO_OFF" and 0 < self.distance < 4:
@@ -614,6 +763,12 @@ class AlarmClock:
                 self.display_override = "OFF"
 
     def update_main_display(self, now):
+        """
+        Update the main numeric display with the current time and brightness.
+
+        Args:
+            now (datetime): The current datetime.
+        """
         num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
         # Determine current brightness
         if self.display_mode == "AUTO_DIM":
@@ -638,6 +793,12 @@ class AlarmClock:
         self.update_alpha_display(now)
 
     def update_alpha_display(self, now):
+        """
+        Update the alphanumeric display based on the current settings and state.
+
+        Args:
+            now (datetime): The current datetime.
+        """
         if self.alarm_settings_state == 2:
             if self.alarm_set == 1:
                 alpha_message = self.alarm_hour*100 + self.alarm_minute
@@ -677,6 +838,9 @@ class AlarmClock:
                 self.logger.error("alpha_display.show() error: %s", str(e))
 
     def handle_display_off(self):
+        """
+        Turn off both the alphanumeric and numeric displays.
+        """
         self.alpha_display.fill(0)
         try:
             self.alpha_display.show()
@@ -689,6 +853,9 @@ class AlarmClock:
             self.logger.error("num_display.show() error: %s", str(e))
 
     def main_loop_iteration(self):
+        """
+        Perform a single iteration of the main loop: update display, check alarm, and handle EDS wake.
+        """
         now = self.get_time()
         if self.debug == "YES":
             self.display_mode = self.debug_brightness(self.auto_dim, self.alarm_stat, self.display_mode, now)
@@ -706,6 +873,9 @@ class AlarmClock:
             self.check_alarm(now)
 
     def run(self):
+        """
+        Main loop for the alarm clock. Continuously updates display and checks alarm until interrupted.
+        """
         try:
             while True:
                 self.main_loop_iteration()
