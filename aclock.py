@@ -289,109 +289,131 @@ class AlarmClock:
             print("\n".join(debug_lines), end="\n")
             return
 
+    # --- Rotary encoder action methods (moved from rotary_encoder_event) ---
+    def inc_alarm_hour(self):
+        self.alarm_hour = (self.alarm_hour % 12) + 1
+        print(f"clockwise {self.alarm_hour}")
+        return True
+
+    def inc_alarm_minute(self):
+        self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
+        print(f"clockwise {self.alarm_minute}")
+        return True
+
+    def toggle_period(self):
+        self.period = "PM" if self.period == "AM" else "AM"
+        print(f"clockwise {self.period}")
+        return True
+
+    def toggle_alarm_stat(self):
+        self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
+        print(f"clockwise {self.alarm_stat}")
+        return True
+
+    def inc_alarm_track(self):
+        self.alarm_track = (self.alarm_track % 6) + 1
+        if self.use_audio:
+            os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+        return False
+
+    def inc_vol_level(self):
+        self.vol_level = (self.vol_level + 1) % 96
+        if self.use_audio:
+            self.mixer.setvolume(self.vol_level)
+            os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+        return False
+
+    def dec_alarm_hour(self):
+        self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
+        print(f"counter clockwise {self.alarm_hour}")
+        return True
+
+    def dec_alarm_minute(self):
+        self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
+        print(f"counter clockwise {self.alarm_minute}")
+        return True
+
+    def dec_period(self):
+        self.period = "PM" if self.period == "AM" else "AM"
+        print(f"counter clockwise {self.period}")
+        return True
+
+    def dec_alarm_stat(self):
+        self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
+        print(f"counter clockwise {self.alarm_stat}")
+        return True
+
+    def dec_alarm_track(self):
+        self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
+        if self.use_audio:
+            os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+        return False
+
+    def dec_vol_level(self):
+        self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
+        if self.use_audio:
+            self.mixer.setvolume(self.vol_level)
+            os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+        return False
+
+    def inc_manual_dim_level(self):
+        self.display_mode = "MANUAL_DIM"
+        self.manual_dim_level = (self.manual_dim_level + 1) % 16
+        return False
+
+    def dec_manual_dim_level(self):
+        self.display_mode = "MANUAL_DIM"
+        self.manual_dim_level = (self.manual_dim_level - 1) % 16
+        return False
+
+    def toggle_display_override(self):
+        self.display_override = "OFF" if self.display_override == "ON" else "ON"
+        return False
+
     def rotary_encoder_event(self, event):
         if self.alarm_settings_state == 2:
-            def inc_alarm_hour():
-                self.alarm_hour = (self.alarm_hour % 12) + 1
-                print(f"clockwise {self.alarm_hour}")
-                return True
-            def inc_alarm_minute():
-                self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
-                print(f"clockwise {self.alarm_minute}")
-                return True
-            def toggle_period():
-                self.period = "PM" if self.period == "AM" else "AM"
-                print(f"clockwise {self.period}")
-                return True
-            def toggle_alarm_stat():
-                self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
-                print(f"clockwise {self.alarm_stat}")
-            def inc_alarm_track():
-                self.alarm_track = (self.alarm_track % 6) + 1
-                if self.use_audio:
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-            def inc_vol_level():
-                self.vol_level = (self.vol_level + 1) % 96
-                if self.use_audio:
-                    self.mixer.setvolume(self.vol_level)
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-            def dec_alarm_hour():
-                self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
-                print(f"counter clockwise {self.alarm_hour}")
-                return True
-            def dec_alarm_minute():
-                self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
-                print(f"counter clockwise {self.alarm_minute}")
-                return True
-            def dec_period():
-                self.period = "PM" if self.period == "AM" else "AM"
-                print(f"counter clockwise {self.period}")
-                return True
-            def dec_alarm_stat():
-                self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
-                print(f"counter clockwise {self.alarm_stat}")
-            def dec_alarm_track():
-                self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
-                if self.use_audio:
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-            def dec_vol_level():
-                self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
-                if self.use_audio:
-                    self.mixer.setvolume(self.vol_level)
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-
-            clockwise_actions = {
-                1: inc_alarm_hour,
-                2: inc_alarm_minute,
-                3: toggle_period,
-                4: toggle_alarm_stat,
-                5: inc_alarm_track,
-                6: inc_vol_level
+            clockwise_alarm_actions = {
+                1: self.inc_alarm_hour,
+                2: self.inc_alarm_minute,
+                3: self.toggle_period,
+                4: self.toggle_alarm_stat,
+                5: self.inc_alarm_track,
+                6: self.inc_vol_level
             }
-            anticlockwise_actions = {
-                1: dec_alarm_hour,
-                2: dec_alarm_minute,
-                3: dec_period,
-                4: dec_alarm_stat,
-                5: dec_alarm_track,
-                6: dec_vol_level
+            anticlockwise_alarm_actions = {
+                1: self.dec_alarm_hour,
+                2: self.dec_alarm_minute,
+                3: self.dec_period,
+                4: self.dec_alarm_stat,
+                5: self.dec_alarm_track,
+                6: self.dec_vol_level
             }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarm_set = (self.alarm_set % 6) + 1
             elif event == RotaryEncoder.CLOCKWISE:
                 update_time = False
-                if self.alarm_set in clockwise_actions:
-                    result = clockwise_actions[self.alarm_set]()
+                if self.alarm_set in clockwise_alarm_actions:
+                    result = clockwise_alarm_actions[self.alarm_set]()
                     if result:
                         update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
             elif event == RotaryEncoder.ANTICLOCKWISE:
                 update_time = False
-                if self.alarm_set in anticlockwise_actions:
-                    result = anticlockwise_actions[self.alarm_set]()
+                if self.alarm_set in anticlockwise_alarm_actions:
+                    result = anticlockwise_alarm_actions[self.alarm_set]()
                     if result:
                         update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
         elif self.display_settings_state == 2:
-            # Refactored: Use dictionaries to map display_set to actions
-            def inc_manual_dim_level():
-                self.display_mode = "MANUAL_DIM"
-                self.manual_dim_level = (self.manual_dim_level + 1) % 16
-            def toggle_display_override():
-                self.display_override = "OFF" if self.display_override == "ON" else "ON"
-            def dec_manual_dim_level():
-                self.display_mode = "MANUAL_DIM"
-                self.manual_dim_level = (self.manual_dim_level - 1) % 16
-
             clockwise_display_actions = {
-                1: inc_manual_dim_level,
-                2: toggle_display_override
+                1: self.inc_manual_dim_level,
+                2: self.toggle_display_override
             }
             anticlockwise_display_actions = {
-                1: dec_manual_dim_level,
-                2: toggle_display_override
+                1: self.dec_manual_dim_level,
+                2: self.toggle_display_override
             }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.display_set = (self.display_set % 2) + 1
