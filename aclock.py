@@ -294,16 +294,21 @@ class AlarmClock:
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarm_set = (self.alarm_set % 6) + 1
             elif event == RotaryEncoder.CLOCKWISE:
+                update_time = False
                 if self.alarm_set == 1:
                     self.alarm_hour = (self.alarm_hour % 12) + 1
                     print(f"clockwise {self.alarm_hour}")
+                    update_time = True
                 elif self.alarm_set == 2:
                     self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
                     print(f"clockwise {self.alarm_minute}")
+                    update_time = True
                 elif self.alarm_set == 3:
                     self.period = "PM" if self.period == "AM" else "AM"
                     print(f"clockwise {self.period}")
-                self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
+                    update_time = True
+                if update_time:
+                    self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
                 if self.alarm_set == 4:
                     self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
                     print(f"clockwise {self.alarm_stat}")
@@ -317,16 +322,21 @@ class AlarmClock:
                         self.mixer.setvolume(self.vol_level)
                         os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
             elif event == RotaryEncoder.ANTICLOCKWISE:
+                update_time = False
                 if self.alarm_set == 1:
                     self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
                     print(f"counter clockwise {self.alarm_hour}")
+                    update_time = True
                 elif self.alarm_set == 2:
                     self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
                     print(f"counter clockwise {self.alarm_minute}")
+                    update_time = True
                 elif self.alarm_set == 3:
                     self.period = "PM" if self.period == "AM" else "AM"
                     print(f"counter clockwise {self.period}")
-                self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
+                    update_time = True
+                if update_time:
+                    self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
                 if self.alarm_set == 4:
                     self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
                     print(f"counter clockwise {self.alarm_stat}")
