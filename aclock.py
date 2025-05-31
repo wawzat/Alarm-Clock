@@ -4,6 +4,7 @@
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
 # 20250530
+# All camelCase variable and method names have been converted to snake_case throughout the file, except for library-required names.
 import os
 import time
 import datetime
@@ -20,8 +21,8 @@ import json
 class AlarmClock:
     SETTINGS_FILE = "settings.json"
     PERSISTED_SETTINGS = [
-        "alarm_hour", "alarm_minute", "period", "alarm_stat", "alarmTrack", "volLevel",
-        "manual_dimLevel", "auto_dimLevel", "autoDim", "display_mode", "display_override"
+        "alarm_hour", "alarm_minute", "period", "alarm_stat", "alarm_track", "vol_level",
+        "manual_dim_level", "auto_dim_level", "auto_dim", "display_mode", "display_override"
     ]
 
     def __init__(self):
@@ -42,10 +43,10 @@ class AlarmClock:
         self.display_settings_button = Button(21, pull_up=True, bounce_time=0.08)
 
         # Define EDS GPIO input and output pins and setup gpiozero devices
-        self.TRIG = 5
-        self.ECHO = 22
-        self.trig = DigitalOutputDevice(self.TRIG)
-        self.echo = DigitalInputDevice(self.ECHO)
+        self.trig_pin = 5
+        self.echo_pin = 22
+        self.trig = DigitalOutputDevice(self.trig_pin)
+        self.echo = DigitalInputDevice(self.echo_pin)
 
         # Pulse EDS and wait for sensor to settle
         self.trig.off()
@@ -57,13 +58,13 @@ class AlarmClock:
 
         # Create display instances (default I2C address (0x70))
         self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.alphadisplay = Seg14x4(self.i2c)
-        self.numdisplay = Seg7x4(self.i2c, address=0x72)
+        self.alpha_display = Seg14x4(self.i2c)
+        self.num_display = Seg7x4(self.i2c, address=0x72)
 
         # Initialize the display. Must be called once before using the display.
-        self.alphadisplay.fill(0)
-        self.numdisplay.fill(0)
-        self.numdisplay.brightness = 6 / 15.0
+        self.alpha_display.fill(0)
+        self.num_display.fill(0)
+        self.num_display.brightness = 6 / 15.0
 
         # Audio feature flag
         self.use_audio = False  # Set to True to enable audio features
@@ -79,20 +80,20 @@ class AlarmClock:
         self.alarm_hour = 4
         self.alarm_minute = 0
         self.alarm_time = dt.strptime("04:00", "%H:%M")
-        self.alarmSet = 1
-        self.displaySet = 1
+        self.alarm_set = 1
+        self.display_set = 1
         self.alarm_stat = "OFF"
         self.alarm_ringing = 0
         self.sleep_state = "OFF"
         self.period = "AM"
-        self.dimLevel = 6
-        self.auto_dimLevel = 0
-        self.manual_dimLevel = 6
-        self.alarmTrack = 1
-        self.volLevel = 65
+        self.dim_level = 6
+        self.auto_dim_level = 0
+        self.manual_dim_level = 6
+        self.alarm_track = 1
+        self.vol_level = 65
         self.alarm_tracks = {1: '01.mp3', 2: '02.mp3', 3: '03.mp3', 4: '04.mp3', 5: '05.mp3', 6: '06.mp3'}
         self.distance = 0
-        self.autoDim = "ON"
+        self.auto_dim = "ON"
         self.loop_count = 0
         self.debug = "NO"
 
@@ -117,9 +118,9 @@ class AlarmClock:
         return dt.now()
 
     def check_alarm(self, now):
-        loopCount = 0
-        volIncrease = 0
-        timeDecrease = 0
+        loop_count = 0
+        vol_increase = 0
+        time_decrease = 0
         print(f"time: {now.time()} {self.period}  alarm time: {self.alarm_time.time()}")
         if now.strftime("%p") == self.period and now.time() >= self.alarm_time.time() and self.alarm_stat == "ON":
             self.alarm_ringing = 1
@@ -131,35 +132,35 @@ class AlarmClock:
             last_num_message = None
             last_colon = None
             while self.alarm_ringing == 1 and self.alarm_stat == "ON":
-                loopCount += 1
+                loop_count += 1
                 delay_loop = 0
-                self.alphadisplay.fill(0)
-                self.alphadisplay.print("RING")
-                self.alphadisplay.show()
+                self.alpha_display.fill(0)
+                self.alpha_display.print("RING")
+                self.alpha_display.show()
                 now = self.get_time()
                 num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
                 colon_state = now.second % 2
                 # Only update numeric display if value or colon changed
                 if (num_message != last_num_message) or (colon_state != last_colon):
-                    self.numdisplay.fill(0)
-                    self.numdisplay.print(num_message)
-                    self.numdisplay.colon = colon_state
+                    self.num_display.fill(0)
+                    self.num_display.print(num_message)
+                    self.num_display.colon = colon_state
                     try:
-                        self.numdisplay.show()
+                        self.num_display.show()
                     except Exception as e:
-                        self.logger.error("numdisplay.show() error: %s", str(e))
+                        self.logger.error("num_display.show() error: %s", str(e))
                     last_num_message = num_message
                     last_colon = colon_state
                 if self.use_audio:
-                    if loopCount % 10 == 0 and (self.volLevel + volIncrease) <= 90:
-                        volIncrease += 5
-                    if loopCount % 10 == 0 and timeDecrease <= 2.25:
-                        timeDecrease += .25
-                    self.mixer.setvolume(self.volLevel+volIncrease)
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
-                print(f"alarm ring, now: {now.time()} alarm: {self.alarm_time.time()} Count: {loopCount} Vol: {self.volLevel+volIncrease} Ring Time: {3-timeDecrease} alarm_ringing: {self.alarm_ringing} sleep_state: {self.sleep_state}")
-                # Check EDS for snooze every 0.1s for up to 2 seconds (or less as timeDecrease increases)
-                snooze_window = max(0.5, 2-timeDecrease)  # never less than 0.5s
+                    if loop_count % 10 == 0 and (self.vol_level + vol_increase) <= 90:
+                        vol_increase += 5
+                    if loop_count % 10 == 0 and time_decrease <= 2.25:
+                        time_decrease += .25
+                    self.mixer.setvolume(self.vol_level+vol_increase)
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+                print(f"alarm ring, now: {now.time()} alarm: {self.alarm_time.time()} Count: {loop_count} Vol: {self.vol_level+vol_increase} Ring Time: {3-time_decrease} alarm_ringing: {self.alarm_ringing} sleep_state: {self.sleep_state}")
+                # Check EDS for snooze every 0.1s for up to 2 seconds (or less as time_decrease increases)
+                snooze_window = max(0.5, 2-time_decrease)  # never less than 0.5s
                 start_time = time.time()
                 while time.time() - start_time < snooze_window:
                     self.distance = self.eds()
@@ -204,16 +205,16 @@ class AlarmClock:
         distance = round(distance, 2)
         return distance
 
-    def clear_alphadisplay(self):
-        self.alphadisplay.fill(0)
+    def clear_alpha_display(self):
+        self.alpha_display.fill(0)
         try:
-            self.alphadisplay.show()
+            self.alpha_display.show()
         except Exception as e:
-            self.logger.error("alphadisplay.show() error: %s", str(e))
+            self.logger.error("alpha_display.show() error: %s", str(e))
 
     def alarm_settings_callback(self, channel):
         debug_lines = []
-        debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={self.alarm_settings_state}, _display_state={self.display_settings_state}, alarmSet={self.alarmSet}")
+        debug_lines.append(f"alarm_settings_callback called with channel={channel} alarm_state={self.alarm_settings_state}, display_state={self.display_settings_state}, alarm_set={self.alarm_set}")
         # Only act on BUTTONUP (button release)
         if channel != RotaryEncoder.BUTTONUP:
             debug_lines.append("alarm_settings_callback: Ignored, not BUTTONUP")
@@ -227,15 +228,15 @@ class AlarmClock:
         elif self.alarm_settings_state == 1:
             debug_lines.append("alarm_settings_callback: Entering alarm settings mode")
             self.alarm_settings_state = 2
-            self.alarmSet = 1
+            self.alarm_set = 1
         elif self.alarm_settings_state == 2:
             debug_lines.append("alarm_settings_callback: Exiting alarm settings mode")
             self.alarm_settings_state = 1
-            self.alphadisplay.fill(0)
+            self.alpha_display.fill(0)
             try:
-                self.alphadisplay.show()
+                self.alpha_display.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error: %s", str(e))
+                self.logger.error("alpha_display.show() error: %s", str(e))
             time.sleep(.5)
         # Reset display cache to force refresh
         self.last_num_message = None
@@ -243,13 +244,13 @@ class AlarmClock:
         self.last_alpha_message = None
         self.last_alpha_brightness = None
         self.last_alpha_type = None
-        debug_lines.append(f"alarm_settings_callback exit: alarm_state={self.alarm_settings_state}, _display_state={self.display_settings_state}, alarmSet={self.alarmSet}")
+        debug_lines.append(f"alarm_settings_callback exit: alarm_state={self.alarm_settings_state}, display_state={self.display_settings_state}, alarm_set={self.alarm_set}")
         print("\n".join(debug_lines), end="\n")
         return
 
     def display_settings_callback(self, channel):
         debug_lines = []
-        debug_lines.append(f"display_settings_callback called with channel={channel} _display_state={self.display_settings_state}, alarmSet={self.alarmSet}, auxSet={self.displaySet}")
+        debug_lines.append(f"display_settings_callback called with channel={channel} display_state={self.display_settings_state}, alarm_set={self.alarm_set}, aux_set={self.display_set}")
         # Only act on BUTTONUP (button release)
         if channel != RotaryEncoder.BUTTONUP:
             return
@@ -260,10 +261,10 @@ class AlarmClock:
                 self.alarm_ringing = 0
                 self.alarm_stat = "OFF"
                 self.sleep_state = "OFF"
-            # Always reset display_settings_state and displaySet when entering display settings
+            # Always reset display_settings_state and display_set when entering display settings
             self.display_settings_state = 2
-            self.displaySet = 1
-            self.clear_alphadisplay()  # Clear display when entering display mode
+            self.display_set = 1
+            self.clear_alpha_display()  # Clear display when entering display mode
             self.save_settings()
             # Reset display cache to force refresh
             self.last_num_message = None
@@ -271,87 +272,87 @@ class AlarmClock:
             self.last_alpha_message = None
             self.last_alpha_brightness = None
             self.last_alpha_type = None
-            debug_lines.append(f"display_settings_callback exit: _display_state={self.display_settings_state}, alarmSet={self.alarmSet}, auxSet={self.displaySet}")
+            debug_lines.append(f"display_settings_callback exit: display_state={self.display_settings_state}, alarm_set={self.alarm_set}, aux_set={self.display_set}")
             print("\n".join(debug_lines), end="\n")
             return
         elif self.display_settings_state == 2:
             debug_lines.append("display_settings_callback: Exiting display mode")
             self.display_settings_state = 1
-            self.clear_alphadisplay()  # Clear display when exiting display mode
+            self.clear_alpha_display()  # Clear display when exiting display mode
             # Reset display cache to force refresh
             self.last_num_message = None
             self.last_num_brightness = None
             self.last_alpha_message = None
             self.last_alpha_brightness = None
             self.last_alpha_type = None
-            debug_lines.append(f"display_settings_callback exit: _display_state={self.display_settings_state}, alarmSet={self.alarmSet}, auxSet={self.displaySet}")
+            debug_lines.append(f"display_settings_callback exit: display_state={self.display_settings_state}, alarm_set={self.alarm_set}, aux_set={self.display_set}")
             print("\n".join(debug_lines), end="\n")
             return
 
     def rotary_encoder_event(self, event):
         if self.alarm_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
-                self.alarmSet = (self.alarmSet % 6) + 1
+                self.alarm_set = (self.alarm_set % 6) + 1
             elif event == RotaryEncoder.CLOCKWISE:
-                if self.alarmSet == 1:
+                if self.alarm_set == 1:
                     self.alarm_hour = (self.alarm_hour % 12) + 1
                     print(f"clockwise {self.alarm_hour}")
-                elif self.alarmSet == 2:
+                elif self.alarm_set == 2:
                     self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
                     print(f"clockwise {self.alarm_minute}")
-                elif self.alarmSet == 3:
+                elif self.alarm_set == 3:
                     self.period = "PM" if self.period == "AM" else "AM"
                     print(f"clockwise {self.period}")
                 self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
-                if self.alarmSet == 4:
+                if self.alarm_set == 4:
                     self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
                     print(f"clockwise {self.alarm_stat}")
-                elif self.alarmSet == 5:
-                    self.alarmTrack = (self.alarmTrack % 6) + 1
+                elif self.alarm_set == 5:
+                    self.alarm_track = (self.alarm_track % 6) + 1
                     if self.use_audio:
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
-                elif self.alarmSet == 6:
-                    self.volLevel = (self.volLevel + 1) % 96
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+                elif self.alarm_set == 6:
+                    self.vol_level = (self.vol_level + 1) % 96
                     if self.use_audio:
-                        self.mixer.setvolume(self.volLevel)
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
+                        self.mixer.setvolume(self.vol_level)
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
             elif event == RotaryEncoder.ANTICLOCKWISE:
-                if self.alarmSet == 1:
+                if self.alarm_set == 1:
                     self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
                     print(f"counter clockwise {self.alarm_hour}")
-                elif self.alarmSet == 2:
+                elif self.alarm_set == 2:
                     self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
                     print(f"counter clockwise {self.alarm_minute}")
-                elif self.alarmSet == 3:
+                elif self.alarm_set == 3:
                     self.period = "PM" if self.period == "AM" else "AM"
                     print(f"counter clockwise {self.period}")
                 self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
-                if self.alarmSet == 4:
+                if self.alarm_set == 4:
                     self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
                     print(f"counter clockwise {self.alarm_stat}")
-                elif self.alarmSet == 5:
-                    self.alarmTrack = 6 if self.alarmTrack == 1 else self.alarmTrack - 1
+                elif self.alarm_set == 5:
+                    self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
                     if self.use_audio:
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
-                elif self.alarmSet == 6:
-                    self.volLevel = 95 if self.volLevel == 0 else self.volLevel - 1
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+                elif self.alarm_set == 6:
+                    self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
                     if self.use_audio:
-                        self.mixer.setvolume(self.volLevel)
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
+                        self.mixer.setvolume(self.vol_level)
+                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
         elif self.display_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
-                self.displaySet = (self.displaySet % 2) + 1
+                self.display_set = (self.display_set % 2) + 1
             elif event == RotaryEncoder.CLOCKWISE:
-                if self.displaySet == 1:
+                if self.display_set == 1:
                     self.display_mode = "MANUAL_DIM"
-                    self.manual_dimLevel = (self.manual_dimLevel + 1) % 16
-                elif self.displaySet == 2:
+                    self.manual_dim_level = (self.manual_dim_level + 1) % 16
+                elif self.display_set == 2:
                     self.display_override = "OFF" if self.display_override == "ON" else "ON"
             elif event == RotaryEncoder.ANTICLOCKWISE:
-                if self.displaySet == 1:
+                if self.display_set == 1:
                     self.display_mode = "MANUAL_DIM"
-                    self.manual_dimLevel = (self.manual_dimLevel - 1) % 16
-                elif self.displaySet == 2:
+                    self.manual_dim_level = (self.manual_dim_level - 1) % 16
+                elif self.display_set == 2:
                     self.display_override = "OFF" if self.display_override == "ON" else "ON"
             if self.alarm_ringing == 0 and (self.display_mode == "MANUAL_OFF" or self.display_mode == "AUTO_OFF"):
                 self.display_mode = "ON"
@@ -367,8 +368,8 @@ class AlarmClock:
         self.save_settings()
         return
 
-    def brightness(self, autoDim, alarm_stat, display_mode, now):
-        if autoDim == "ON":
+    def brightness(self, auto_dim, alarm_stat, display_mode, now):
+        if auto_dim == "ON":
             if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("22:00", "%H:%M").time():
                 display_mode = "MANUAL_DIM"
             elif dt.strptime("22:00", "%H:%M").time() < now.time() <= dt.strptime("23:59", "%H:%M").time():
@@ -385,8 +386,8 @@ class AlarmClock:
                     display_mode = "MANUAL_DIM"
         return display_mode
 
-    def debug_brightness(self, autoDim, alarm_stat, display_mode, now):
-        if autoDim == "ON":
+    def debug_brightness(self, auto_dim, alarm_stat, display_mode, now):
+        if auto_dim == "ON":
             if dt.strptime("07:30", "%H:%M").time() <= now.time() <= dt.strptime("12:00", "%H:%M").time():
                 display_mode = "MANUAL_DIM"
             elif dt.strptime("12:00", "%H:%M").time() < now.time() <= dt.strptime("12:59", "%H:%M").time():
@@ -403,62 +404,62 @@ class AlarmClock:
                     display_mode = "MANUAL_DIM"
         return display_mode
 
-    def display_alphamessage(self, message_type, alpha_message, display_mode):
+    def display_alpha_message(self, message_type, alpha_message, display_mode):
         if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
-            self.alphadisplay.fill(0)
+            self.alpha_display.fill(0)
             try:
-                self.alphadisplay.show()
+                self.alpha_display.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error: %s", str(e))
+                self.logger.error("alpha_display.show() error: %s", str(e))
             # Reset cache so next message will display
             self.last_alpha_message = None
             self.last_alpha_brightness = None
             self.last_alpha_type = None
         elif display_mode == "AUTO_DIM" or display_mode == "MANUAL_DIM":
             if display_mode == "AUTO_DIM":
-                dimLevel = self.auto_dimLevel
+                dim_level = self.auto_dim_level
             elif display_mode == "MANUAL_DIM":
-                dimLevel = self.manual_dimLevel
+                dim_level = self.manual_dim_level
             # Only update if value or brightness or type changed
-            current_brightness = dimLevel / 15.0
+            current_brightness = dim_level / 15.0
             if (alpha_message != self.last_alpha_message) or (current_brightness != self.last_alpha_brightness) or (message_type != self.last_alpha_type):
-                self.alphadisplay.fill(0)
+                self.alpha_display.fill(0)
                 if message_type == "FLOAT":
-                    self.alphadisplay.print(str(alpha_message))
+                    self.alpha_display.print(str(alpha_message))
                 elif message_type == "STR":
-                    self.alphadisplay.print(alpha_message)
-                print(f"dimLevel: {dimLevel} display_mode: {display_mode}")
-                self.alphadisplay.brightness = current_brightness
+                    self.alpha_display.print(alpha_message)
+                print(f"dim_level: {dim_level} display_mode: {display_mode}")
+                self.alpha_display.brightness = current_brightness
                 try:
-                    self.alphadisplay.show()
+                    self.alpha_display.show()
                 except Exception as e:
-                    self.logger.error("alphadisplay.show() error: %s", str(e))
+                    self.logger.error("alpha_display.show() error: %s", str(e))
                 self.last_alpha_message = alpha_message
                 self.last_alpha_brightness = current_brightness
                 self.last_alpha_type = message_type
             time.sleep(.02)
         return
 
-    def display_nummessage(self, num_message, display_mode, now):
+    def display_num_message(self, num_message, display_mode, now):
         if (display_mode == "MANUAL_OFF" or display_mode == "AUTO_OFF"):
-            self.numdisplay.fill(0)
+            self.num_display.fill(0)
             try:
-                self.numdisplay.show()
+                self.num_display.show()
             except Exception as e:
-                self.logger.error("numdisplay.show() error: %s", str(e))
+                self.logger.error("num_display.show() error: %s", str(e))
         elif display_mode == "AUTO_DIM" or display_mode == "MANUAL_DIM":
             if display_mode == "AUTO_DIM":
-                dimLevel = self.auto_dimLevel
+                dim_level = self.auto_dim_level
             elif display_mode == "MANUAL_DIM":
-                dimLevel = self.manual_dimLevel
-            self.numdisplay.fill(0)
-            self.numdisplay.print(str(num_message))
-            self.numdisplay.colon = now.second % 2
-            self.numdisplay.brightness = dimLevel / 15.0
+                dim_level = self.manual_dim_level
+            self.num_display.fill(0)
+            self.num_display.print(str(num_message))
+            self.num_display.colon = now.second % 2
+            self.num_display.brightness = dim_level / 15.0
             try:
-                self.numdisplay.show()
+                self.num_display.show()
             except Exception as e:
-                self.logger.error("numdisplay.show() error: %s", str(e))
+                self.logger.error("num_display.show() error: %s", str(e))
         time.sleep(.02)
         return
 
@@ -480,11 +481,11 @@ class AlarmClock:
             self.alarm_minute = settings.get("alarm_minute", self.alarm_minute)
             self.period = settings.get("period", self.period)
             self.alarm_stat = settings.get("alarm_stat", self.alarm_stat)
-            self.alarmTrack = settings.get("alarmTrack", self.alarmTrack)
-            self.volLevel = settings.get("volLevel", self.volLevel)
-            self.manual_dimLevel = settings.get("manual_dimLevel", self.manual_dimLevel)
-            self.auto_dimLevel = settings.get("auto_dimLevel", self.auto_dimLevel)
-            self.autoDim = settings.get("autoDim", self.autoDim)
+            self.alarm_track = settings.get("alarm_track", self.alarm_track)
+            self.vol_level = settings.get("vol_level", self.vol_level)
+            self.manual_dim_level = settings.get("manual_dim_level", self.manual_dim_level)
+            self.auto_dim_level = settings.get("auto_dim_level", self.auto_dim_level)
+            self.auto_dim = settings.get("auto_dim", self.auto_dim)
             self.display_mode = settings.get("display_mode", self.display_mode)
             self.display_override = settings.get("display_override", self.display_override)
             alarm_time_str = settings.get("alarm_time", None)
@@ -521,7 +522,7 @@ class AlarmClock:
                 while self.loop_count <= 100:
                     now = self.get_time()
                     num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
-                    self.display_nummessage(num_message, self.display_mode, now)
+                    self.display_num_message(num_message, self.display_mode, now)
                     time.sleep(.03)
                     self.loop_count += 1
                 self.display_mode = "AUTO_OFF"
@@ -533,7 +534,7 @@ class AlarmClock:
                 while self.loop_count <= 100:
                     now = self.get_time()
                     num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
-                    self.display_nummessage(num_message, self.display_mode, now)
+                    self.display_num_message(num_message, self.display_mode, now)
                     time.sleep(.03)
                     self.loop_count += 1
                 self.display_mode = "MANUAL_OFF"
@@ -543,83 +544,83 @@ class AlarmClock:
         num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
         # Determine current brightness
         if self.display_mode == "AUTO_DIM":
-            current_brightness = self.auto_dimLevel / 15.0
+            current_brightness = self.auto_dim_level / 15.0
         elif self.display_mode == "MANUAL_DIM":
-            current_brightness = self.manual_dimLevel / 15.0
+            current_brightness = self.manual_dim_level / 15.0
         else:
-            current_brightness = self.numdisplay.brightness
+            current_brightness = self.num_display.brightness
         # Only update if value or brightness changed
         if (num_message != self.last_num_message) or (current_brightness != self.last_num_brightness):
-            self.numdisplay.fill(0)
-            self.numdisplay.print(str(num_message))
-            self.numdisplay.brightness = current_brightness
+            self.num_display.fill(0)
+            self.num_display.print(str(num_message))
+            self.num_display.brightness = current_brightness
             self.last_num_message = num_message
             self.last_num_brightness = current_brightness
         # Always update colon and show, for blink effect
-        self.numdisplay.colon = now.second % 2
+        self.num_display.colon = now.second % 2
         try:
-            self.numdisplay.show()
+            self.num_display.show()
         except Exception as e:
-            self.logger.error("numdisplay.show() error: %s", str(e))
+            self.logger.error("num_display.show() error: %s", str(e))
         self.update_alpha_display(now)
 
     def update_alpha_display(self, now):
         if self.alarm_settings_state == 2:
-            if self.alarmSet == 1:
+            if self.alarm_set == 1:
                 alpha_message = self.alarm_hour*100 + self.alarm_minute
-                self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
-            elif self.alarmSet == 2:
+                self.display_alpha_message("FLOAT", alpha_message, self.display_mode)
+            elif self.alarm_set == 2:
                 alpha_message = self.alarm_hour*100 + self.alarm_minute
-                self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
-            elif self.alarmSet == 3:
+                self.display_alpha_message("FLOAT", alpha_message, self.display_mode)
+            elif self.alarm_set == 3:
                 alpha_message = self.period
-                self.display_alphamessage("STR", alpha_message, self.display_mode)
-            elif self.alarmSet == 4:
+                self.display_alpha_message("STR", alpha_message, self.display_mode)
+            elif self.alarm_set == 4:
                 alpha_message = self.alarm_stat
-                self.display_alphamessage("STR", alpha_message, self.display_mode)
-            elif self.alarmSet == 5:
-                alpha_message = self.alarmTrack
-                self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
+                self.display_alpha_message("STR", alpha_message, self.display_mode)
+            elif self.alarm_set == 5:
+                alpha_message = self.alarm_track
+                self.display_alpha_message("FLOAT", alpha_message, self.display_mode)
                 if self.use_audio:
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
-            elif self.alarmSet == 6:
-                alpha_message = self.volLevel
-                self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+            elif self.alarm_set == 6:
+                alpha_message = self.vol_level
+                self.display_alpha_message("FLOAT", alpha_message, self.display_mode)
                 if self.use_audio:
-                    self.mixer.setvolume(self.volLevel)
-                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarmTrack]} &")
+                    self.mixer.setvolume(self.vol_level)
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
         elif self.display_settings_state == 2:
-            if self.displaySet == 1:
-                alpha_message = self.manual_dimLevel
-                self.display_alphamessage("FLOAT", alpha_message, self.display_mode)
-            elif self.displaySet == 2:
+            if self.display_set == 1:
+                alpha_message = self.manual_dim_level
+                self.display_alpha_message("FLOAT", alpha_message, self.display_mode)
+            elif self.display_set == 2:
                 alpha_message = self.display_override
-                self.display_alphamessage("STR", alpha_message, self.display_mode)
+                self.display_alpha_message("STR", alpha_message, self.display_mode)
         elif (self.alarm_settings_state == 1 and self.display_settings_state == 1):
-            self.alphadisplay.fill(0)
+            self.alpha_display.fill(0)
             try:
-                self.alphadisplay.show()
+                self.alpha_display.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error: %s", str(e))
+                self.logger.error("alpha_display.show() error: %s", str(e))
 
     def handle_display_off(self):
-        self.alphadisplay.fill(0)
+        self.alpha_display.fill(0)
         try:
-            self.alphadisplay.show()
+            self.alpha_display.show()
         except Exception as e:
-            self.logger.error("alphadisplay.show() error: %s", str(e))
-        self.numdisplay.fill(0)
+            self.logger.error("alpha_display.show() error: %s", str(e))
+        self.num_display.fill(0)
         try:
-            self.numdisplay.show()
+            self.num_display.show()
         except Exception as e:
-            self.logger.error("numdisplay.show() error: %s", str(e))
+            self.logger.error("num_display.show() error: %s", str(e))
 
     def main_loop_iteration(self):
         now = self.get_time()
         if self.debug == "YES":
-            self.display_mode = self.debug_brightness(self.autoDim, self.alarm_stat, self.display_mode, now)
+            self.display_mode = self.debug_brightness(self.auto_dim, self.alarm_stat, self.display_mode, now)
         else:
-            self.display_mode = self.brightness(self.autoDim, self.alarm_stat, self.display_mode, now)
+            self.display_mode = self.brightness(self.auto_dim, self.alarm_stat, self.display_mode, now)
         if (self.display_mode == "MANUAL_OFF" or self.display_mode == "AUTO_OFF") and self.display_override == "OFF":
             self.distance = self.eds()
             print(f"{self.distance} {self.display_mode}")
@@ -637,27 +638,27 @@ class AlarmClock:
                 self.main_loop_iteration()
                 time.sleep(0.05)
         except KeyboardInterrupt:
-            self.alphadisplay.fill(0)
+            self.alpha_display.fill(0)
             try:
-                self.alphadisplay.show()
+                self.alpha_display.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error: %s", str(e))
-            self.numdisplay.fill(0)
+                self.logger.error("alpha_display.show() error: %s", str(e))
+            self.num_display.fill(0)
             try:
-                self.numdisplay.show()
+                self.num_display.show()
             except Exception as e:
-                self.logger.error("numdisplay.show() error: %s", str(e))
+                self.logger.error("num_display.show() error: %s", str(e))
         finally:
             try:
-                self.alphadisplay.fill(0)
-                self.alphadisplay.show()
+                self.alpha_display.fill(0)
+                self.alpha_display.show()
             except Exception as e:
-                self.logger.error("alphadisplay.show() error: %s", str(e))
+                self.logger.error("alpha_display.show() error: %s", str(e))
             try:
-                self.numdisplay.fill(0)
-                self.numdisplay.show()
+                self.num_display.fill(0)
+                self.num_display.show()
             except Exception as e:
-                self.logger.error("numdisplay.show() error: %s", str(e))
+                self.logger.error("num_display.show() error: %s", str(e))
 
 if __name__ == "__main__":
     clock = AlarmClock()
