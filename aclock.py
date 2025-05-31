@@ -43,7 +43,7 @@ class AlarmClock:
 
         # Define EDS GPIO input and output pins and setup gpiozero devices
         self.TRIG = 5
-        self.ECHO = 6
+        self.ECHO = 22
         self.trig = DigitalOutputDevice(self.TRIG)
         self.echo = DigitalInputDevice(self.ECHO)
 
