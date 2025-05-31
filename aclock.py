@@ -291,64 +291,89 @@ class AlarmClock:
 
     def rotary_encoder_event(self, event):
         if self.alarm_settings_state == 2:
+            def inc_alarm_hour():
+                self.alarm_hour = (self.alarm_hour % 12) + 1
+                print(f"clockwise {self.alarm_hour}")
+                return True
+            def inc_alarm_minute():
+                self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
+                print(f"clockwise {self.alarm_minute}")
+                return True
+            def toggle_period():
+                self.period = "PM" if self.period == "AM" else "AM"
+                print(f"clockwise {self.period}")
+                return True
+            def toggle_alarm_stat():
+                self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
+                print(f"clockwise {self.alarm_stat}")
+            def inc_alarm_track():
+                self.alarm_track = (self.alarm_track % 6) + 1
+                if self.use_audio:
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+            def inc_vol_level():
+                self.vol_level = (self.vol_level + 1) % 96
+                if self.use_audio:
+                    self.mixer.setvolume(self.vol_level)
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+            def dec_alarm_hour():
+                self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
+                print(f"counter clockwise {self.alarm_hour}")
+                return True
+            def dec_alarm_minute():
+                self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
+                print(f"counter clockwise {self.alarm_minute}")
+                return True
+            def dec_period():
+                self.period = "PM" if self.period == "AM" else "AM"
+                print(f"counter clockwise {self.period}")
+                return True
+            def dec_alarm_stat():
+                self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
+                print(f"counter clockwise {self.alarm_stat}")
+            def dec_alarm_track():
+                self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
+                if self.use_audio:
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+            def dec_vol_level():
+                self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
+                if self.use_audio:
+                    self.mixer.setvolume(self.vol_level)
+                    os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
+
+            clockwise_actions = {
+                1: inc_alarm_hour,
+                2: inc_alarm_minute,
+                3: toggle_period,
+                4: toggle_alarm_stat,
+                5: inc_alarm_track,
+                6: inc_vol_level
+            }
+            anticlockwise_actions = {
+                1: dec_alarm_hour,
+                2: dec_alarm_minute,
+                3: dec_period,
+                4: dec_alarm_stat,
+                5: dec_alarm_track,
+                6: dec_vol_level
+            }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.alarm_set = (self.alarm_set % 6) + 1
             elif event == RotaryEncoder.CLOCKWISE:
                 update_time = False
-                if self.alarm_set == 1:
-                    self.alarm_hour = (self.alarm_hour % 12) + 1
-                    print(f"clockwise {self.alarm_hour}")
-                    update_time = True
-                elif self.alarm_set == 2:
-                    self.alarm_minute = (self.alarm_minute + self.minute_incr) % 60
-                    print(f"clockwise {self.alarm_minute}")
-                    update_time = True
-                elif self.alarm_set == 3:
-                    self.period = "PM" if self.period == "AM" else "AM"
-                    print(f"clockwise {self.period}")
-                    update_time = True
+                if self.alarm_set in clockwise_actions:
+                    result = clockwise_actions[self.alarm_set]()
+                    if result:
+                        update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
-                if self.alarm_set == 4:
-                    self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
-                    print(f"clockwise {self.alarm_stat}")
-                elif self.alarm_set == 5:
-                    self.alarm_track = (self.alarm_track % 6) + 1
-                    if self.use_audio:
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-                elif self.alarm_set == 6:
-                    self.vol_level = (self.vol_level + 1) % 96
-                    if self.use_audio:
-                        self.mixer.setvolume(self.vol_level)
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
             elif event == RotaryEncoder.ANTICLOCKWISE:
                 update_time = False
-                if self.alarm_set == 1:
-                    self.alarm_hour = 12 if self.alarm_hour == 1 else self.alarm_hour - 1
-                    print(f"counter clockwise {self.alarm_hour}")
-                    update_time = True
-                elif self.alarm_set == 2:
-                    self.alarm_minute = (self.alarm_minute - self.minute_incr) % 60
-                    print(f"counter clockwise {self.alarm_minute}")
-                    update_time = True
-                elif self.alarm_set == 3:
-                    self.period = "PM" if self.period == "AM" else "AM"
-                    print(f"counter clockwise {self.period}")
-                    update_time = True
+                if self.alarm_set in anticlockwise_actions:
+                    result = anticlockwise_actions[self.alarm_set]()
+                    if result:
+                        update_time = True
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
-                if self.alarm_set == 4:
-                    self.alarm_stat = "OFF" if self.alarm_stat == "ON" else "ON"
-                    print(f"counter clockwise {self.alarm_stat}")
-                elif self.alarm_set == 5:
-                    self.alarm_track = 6 if self.alarm_track == 1 else self.alarm_track - 1
-                    if self.use_audio:
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
-                elif self.alarm_set == 6:
-                    self.vol_level = 95 if self.vol_level == 0 else self.vol_level - 1
-                    if self.use_audio:
-                        self.mixer.setvolume(self.vol_level)
-                        os.system(f"mpg123 -q {self.alarm_tracks[self.alarm_track]} &")
         elif self.display_settings_state == 2:
             if event == RotaryEncoder.BUTTONDOWN:
                 self.display_set = (self.display_set % 2) + 1
