@@ -375,20 +375,34 @@ class AlarmClock:
                 if update_time:
                     self.alarm_time = dt.strptime(f"{self.alarm_hour}:{self.alarm_minute} {self.period}", "%I:%M %p")
         elif self.display_settings_state == 2:
+            # Refactored: Use dictionaries to map display_set to actions
+            def inc_manual_dim_level():
+                self.display_mode = "MANUAL_DIM"
+                self.manual_dim_level = (self.manual_dim_level + 1) % 16
+            def toggle_display_override():
+                self.display_override = "OFF" if self.display_override == "ON" else "ON"
+            def dec_manual_dim_level():
+                self.display_mode = "MANUAL_DIM"
+                self.manual_dim_level = (self.manual_dim_level - 1) % 16
+
+            clockwise_display_actions = {
+                1: inc_manual_dim_level,
+                2: toggle_display_override
+            }
+            anticlockwise_display_actions = {
+                1: dec_manual_dim_level,
+                2: toggle_display_override
+            }
             if event == RotaryEncoder.BUTTONDOWN:
                 self.display_set = (self.display_set % 2) + 1
             elif event == RotaryEncoder.CLOCKWISE:
-                if self.display_set == 1:
-                    self.display_mode = "MANUAL_DIM"
-                    self.manual_dim_level = (self.manual_dim_level + 1) % 16
-                elif self.display_set == 2:
-                    self.display_override = "OFF" if self.display_override == "ON" else "ON"
+                action = clockwise_display_actions.get(self.display_set)
+                if action:
+                    action()
             elif event == RotaryEncoder.ANTICLOCKWISE:
-                if self.display_set == 1:
-                    self.display_mode = "MANUAL_DIM"
-                    self.manual_dim_level = (self.manual_dim_level - 1) % 16
-                elif self.display_set == 2:
-                    self.display_override = "OFF" if self.display_override == "ON" else "ON"
+                action = anticlockwise_display_actions.get(self.display_set)
+                if action:
+                    action()
             if self.alarm_ringing == 0 and (self.display_mode == "MANUAL_OFF" or self.display_mode == "AUTO_OFF"):
                 self.display_mode = "ON"
                 self.display_override = "ON"
