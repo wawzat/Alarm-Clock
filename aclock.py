@@ -127,8 +127,9 @@ class AlarmClock:
             snooze_triggered = False
             snooze_cooldown = 10  # seconds to wait before alarm can re-trigger after snooze
             snooze_time = None
-            # --- Flicker reduction: cache last num display value ---
+            # --- Flicker reduction: cache last num display value and colon ---
             last_num_message = None
+            last_colon = None
             while self.alarm_ringing == 1 and self.alarm_stat == "ON":
                 loopCount += 1
                 delay_loop = 0
@@ -138,17 +139,17 @@ class AlarmClock:
                 now = self.get_time()
                 num_message = int(now.strftime("%I"))*100+int(now.strftime("%M"))
                 colon_state = now.second % 2
-                # Only update digits if value changed
-                if num_message != last_num_message:
+                # Only update numeric display if value or colon changed
+                if (num_message != last_num_message) or (colon_state != last_colon):
                     self.numdisplay.fill(0)
                     self.numdisplay.print(num_message)
+                    self.numdisplay.colon = colon_state
+                    try:
+                        self.numdisplay.show()
+                    except Exception as e:
+                        self.logger.error("numdisplay.show() error: %s", str(e))
                     last_num_message = num_message
-                # Always update colon and show for blink effect
-                self.numdisplay.colon = colon_state
-                try:
-                    self.numdisplay.show()
-                except Exception as e:
-                    self.logger.error("numdisplay.show() error: %s", str(e))
+                    last_colon = colon_state
                 if self.use_audio:
                     if loopCount % 10 == 0 and (self.volLevel + volIncrease) <= 90:
                         volIncrease += 5
@@ -178,8 +179,6 @@ class AlarmClock:
                     while time.time() - snooze_time < snooze_cooldown:
                         time.sleep(0.2)
                     break
-                # Add a small delay to allow colon to blink
-                time.sleep(0.05)
         elif now >= self.alarm_time and self.alarm_stat == "OFF":
             print("alarm mode off")
         return
