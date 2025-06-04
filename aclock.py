@@ -4,6 +4,11 @@
 #   , display override move to display functions? LED blinking when after 8PM
 # 20171118
 # 20250531
+
+# I2C addresses:
+#   0x70 - 14-segment alphanumeric display
+#   0x72 - 7-segment numeric display
+
 import os
 import time
 import datetime
